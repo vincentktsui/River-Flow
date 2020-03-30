@@ -57,7 +57,7 @@ export default class Main {
             reflectivity: 0.6,
         })
         water.rotation.x = - Math.PI / 2;
-        // scene.add(water);
+        scene.add(water);
 
 
         // set up terrain
@@ -203,7 +203,7 @@ export default class Main {
                 }
             }
             // adjustVertices();
-            // zOffset -= 1;
+            zOffset -= 1;
             
             sphere.position.set(xOffset, yOffset, zOffset);
 

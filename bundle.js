@@ -3707,8 +3707,8 @@ var Main = function Main(container) {
     textureHeight: 1024,
     reflectivity: 0.6
   });
-  water.rotation.x = -Math.PI / 2; // scene.add(water);
-  // set up terrain
+  water.rotation.x = -Math.PI / 2;
+  scene.add(water); // set up terrain
 
   var planeGeometry = new three__WEBPACK_IMPORTED_MODULE_0__["PlaneBufferGeometry"](2000, 2000, 200, 200);
   var planeMaterial = new three__WEBPACK_IMPORTED_MODULE_0__["MeshStandardMaterial"]({
@@ -3834,9 +3834,9 @@ var Main = function Main(container) {
         yOffset = 0;
       }
     } // adjustVertices();
-    // zOffset -= 1;
 
 
+    zOffset -= 1;
     sphere.position.set(xOffset, yOffset, zOffset); // water.material.uniforms[ 'time' ].value += 1.0/60.0;
 
     camera.position.set(Math.sin(angle) * 100, 30, Math.cos(angle) * 100 + zOffset);
