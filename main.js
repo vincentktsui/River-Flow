@@ -202,8 +202,8 @@ export default class Main {
                     yOffset = 0;
                 }
             }
-            // adjustVertices();
-            zOffset -= 1;
+            adjustVertices();
+            // zOffset -= 1;
             
             sphere.position.set(xOffset, yOffset, zOffset);
 
@@ -224,9 +224,9 @@ export default class Main {
             for (let j = 0; j < wSeg; j++) {
                 temp.push(pa[3 * ((hSeg - 1) * wSeg + j) + 2]);
             }
-            for (let i = hSeg - 2; i > 0; i--) {
+            for (let i = hSeg - 1; i > 0; i--) {
                 for (let j = 0; j < wSeg; j++) {
-                    pa[3 * (i * wSeg + j) + 2] = pa[3 * ((i + 1) * wSeg + j) + 2];
+                    pa[3 * (i * wSeg + j) + 2] = pa[3 * ((i - 1) * wSeg + j) + 2];
                 }
             }
             for (let j = 0; j < wSeg; j++) {

@@ -3833,10 +3833,10 @@ var Main = function Main(container) {
         yAngle = 0;
         yOffset = 0;
       }
-    } // adjustVertices();
+    }
 
+    adjustVertices(); // zOffset -= 1;
 
-    zOffset -= 1;
     sphere.position.set(xOffset, yOffset, zOffset); // water.material.uniforms[ 'time' ].value += 1.0/60.0;
 
     camera.position.set(Math.sin(angle) * 100, 30, Math.cos(angle) * 100 + zOffset);
@@ -3854,9 +3854,9 @@ var Main = function Main(container) {
       temp.push(pa[3 * ((hSeg - 1) * wSeg + _j) + 2]);
     }
 
-    for (var _i2 = hSeg - 2; _i2 > 0; _i2--) {
+    for (var _i2 = hSeg - 1; _i2 > 0; _i2--) {
       for (var _j2 = 0; _j2 < wSeg; _j2++) {
-        pa[3 * (_i2 * wSeg + _j2) + 2] = pa[3 * ((_i2 + 1) * wSeg + _j2) + 2];
+        pa[3 * (_i2 * wSeg + _j2) + 2] = pa[3 * ((_i2 - 1) * wSeg + _j2) + 2];
       }
     }
 
