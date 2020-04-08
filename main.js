@@ -13,7 +13,7 @@ export default class Main {
             75,
             window.innerWidth / window.innerHeight,
             10,
-            2000
+            1000
         );
         let angle = 0;
         let zOffset = 0;
@@ -35,7 +35,7 @@ export default class Main {
         
 
         // water plane
-        const waterGeometry = new THREE.PlaneBufferGeometry( 2000, 2000 );
+        const waterGeometry = new THREE.PlaneBufferGeometry( 1000, 1000 );
         const water = new Water(waterGeometry, {
             // textureWidth: 512,
             // textureHeight: 512,
@@ -51,7 +51,7 @@ export default class Main {
             // distortionScale: 3.7,
             color: 0x99ffff,
             scale: 4,
-            flowDirection: new THREE.Vector2(1, 1),
+            flowDirection: new THREE.Vector2(1, 4),
             textureWidth: 1024,
             textureHeight: 1024,
             reflectivity: 0.6,
@@ -61,7 +61,7 @@ export default class Main {
 
 
         // set up terrain
-        const planeGeometry = new THREE.PlaneBufferGeometry( 2000, 2000, 200, 200 );
+        const planeGeometry = new THREE.PlaneBufferGeometry( 1000, 1000, 200, 200 );
         const planeMaterial = new THREE.MeshStandardMaterial({
             roughness: 0.8,
             color: new THREE.Color(0xb2ff66),
@@ -73,10 +73,11 @@ export default class Main {
         let posarray = pos.array;
 
         function formula(x, offset) {
-            let y = Math.PI * x / 300.0;
+            let y = Math.PI * x / 110.0;
             // let y = x;
             // return (Math.sin(0.5 * y) + Math.sin(y) + 0.2 * Math.sin(3 * y)) * 50 + offset / 2;
-            return (Math.sin(0.5 * y) + Math.sin(y) + 0.2 * Math.sin(3 * y)) * 5 + offset / 2;
+            // return (Math.sin(0.5 * y) + Math.sin(y) + 0.2 * Math.sin(3 * y)) * 5 + offset / 2;
+            return (Math.sin(0.5 * y) + Math.sin(y)) * 20 + offset / 2;
         }
         const simplex = new SimplexNoise();
 
@@ -84,9 +85,10 @@ export default class Main {
             // y
             for (let j = 0; j < wSeg; j++) {
                 // x
-                let center = formula(i, wSeg);
-                let left = formula(i, wSeg) - 5 - (simplex.noise2D(i/hSeg, 0) + 1) * 5;
-                let right = formula(i, wSeg) + 5 + (simplex.noise2D(i/hSeg, 1) + 1) * 5;
+                // let left = formula(i, wSeg) - 5 - (simplex.noise2D(i/hSeg, 0) + 1) * 5;
+                // let right = formula(i, wSeg) + 5 + (simplex.noise2D(i/hSeg, 1) + 1) * 5;
+                let left = formula(i, wSeg) - 10;
+                let right = formula(i, wSeg) + 10;
                 if ((j > left) && (j < right)) {
                     posarray[3 * (i * wSeg + j) + 2] = 0;
                 }
@@ -187,7 +189,7 @@ export default class Main {
         function render() {
             if (moving === "jump" || moving === "dive") {
                 if (yAngle <= Math.PI) {
-                    yAngle += Math.PI / 90.0;
+                    yAngle += Math.PI / 30.0;
                     if (moving === "jump") {
                         yOffset = Math.sin(yAngle) * 20;
                     }
@@ -203,6 +205,8 @@ export default class Main {
                 }
             }
             adjustVertices();
+            adjustSphere();
+            adjustCamera();
             // zOffset -= 1;
             
             sphere.position.set(xOffset, yOffset, zOffset);
@@ -213,6 +217,13 @@ export default class Main {
 
 
             renderer.render(scene, camera);
+
+        }
+
+        function adjustSphere() {
+            
+        }
+        function adjustCamera() {
 
         }
 
@@ -255,7 +266,12 @@ export default class Main {
 
         function animate() {
             requestAnimationFrame( animate );
-            render(); 
+            now = Date.now();
+            elapsed = now - then;
+            if (elapsed > fpsInterval) {
+                then = now - (elapsed % fpsInterval);
+                render(); 
+            }
         }
         function userInput(event) {
             const key = event.key;
@@ -283,6 +299,15 @@ export default class Main {
         }
         document.addEventListener("keydown", userInput, false);
         window.addEventListener("resize", onWindowResize);
-        animate();
+
+        let startTime, now, then, elapsed, fpsInterval;
+        function startAnimating(fps) {
+            fpsInterval = 1000 / fps;
+            then = Date.now();
+            startTime = then;
+            animate();
+        }
+
+        startAnimating(30);
     }
 }

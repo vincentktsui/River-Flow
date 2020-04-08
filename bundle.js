@@ -3667,7 +3667,7 @@ var Main = function Main(container) {
 
   var clock = new three__WEBPACK_IMPORTED_MODULE_0__["Clock"]();
   var scene = new three__WEBPACK_IMPORTED_MODULE_0__["Scene"]();
-  var camera = new three__WEBPACK_IMPORTED_MODULE_0__["PerspectiveCamera"](75, window.innerWidth / window.innerHeight, 10, 2000);
+  var camera = new three__WEBPACK_IMPORTED_MODULE_0__["PerspectiveCamera"](75, window.innerWidth / window.innerHeight, 10, 1000);
   var angle = 0;
   var zOffset = 0;
   var xOffset = 0;
@@ -3686,7 +3686,7 @@ var Main = function Main(container) {
   var ambientLight = new three__WEBPACK_IMPORTED_MODULE_0__["AmbientLight"](0xffffff, 0.4);
   scene.add(ambientLight); // water plane
 
-  var waterGeometry = new three__WEBPACK_IMPORTED_MODULE_0__["PlaneBufferGeometry"](2000, 2000);
+  var waterGeometry = new three__WEBPACK_IMPORTED_MODULE_0__["PlaneBufferGeometry"](1000, 1000);
   var water = new _js_Water2_js__WEBPACK_IMPORTED_MODULE_2__["Water"](waterGeometry, {
     // textureWidth: 512,
     // textureHeight: 512,
@@ -3702,7 +3702,7 @@ var Main = function Main(container) {
     // distortionScale: 3.7,
     color: 0x99ffff,
     scale: 4,
-    flowDirection: new three__WEBPACK_IMPORTED_MODULE_0__["Vector2"](1, 1),
+    flowDirection: new three__WEBPACK_IMPORTED_MODULE_0__["Vector2"](1, 4),
     textureWidth: 1024,
     textureHeight: 1024,
     reflectivity: 0.6
@@ -3710,7 +3710,7 @@ var Main = function Main(container) {
   water.rotation.x = -Math.PI / 2;
   scene.add(water); // set up terrain
 
-  var planeGeometry = new three__WEBPACK_IMPORTED_MODULE_0__["PlaneBufferGeometry"](2000, 2000, 200, 200);
+  var planeGeometry = new three__WEBPACK_IMPORTED_MODULE_0__["PlaneBufferGeometry"](1000, 1000, 200, 200);
   var planeMaterial = new three__WEBPACK_IMPORTED_MODULE_0__["MeshStandardMaterial"]({
     roughness: 0.8,
     color: new three__WEBPACK_IMPORTED_MODULE_0__["Color"](0xb2ff66) // wireframe: true
@@ -3722,10 +3722,11 @@ var Main = function Main(container) {
   var posarray = pos.array;
 
   function formula(x, offset) {
-    var y = Math.PI * x / 300.0; // let y = x;
+    var y = Math.PI * x / 110.0; // let y = x;
     // return (Math.sin(0.5 * y) + Math.sin(y) + 0.2 * Math.sin(3 * y)) * 50 + offset / 2;
+    // return (Math.sin(0.5 * y) + Math.sin(y) + 0.2 * Math.sin(3 * y)) * 5 + offset / 2;
 
-    return (Math.sin(0.5 * y) + Math.sin(y) + 0.2 * Math.sin(3 * y)) * 5 + offset / 2;
+    return (Math.sin(0.5 * y) + Math.sin(y)) * 20 + offset / 2;
   }
 
   var simplex = new simplex_noise__WEBPACK_IMPORTED_MODULE_4___default.a();
@@ -3734,9 +3735,10 @@ var Main = function Main(container) {
     // y
     for (var j = 0; j < wSeg; j++) {
       // x
-      var center = formula(_i, wSeg);
-      var left = formula(_i, wSeg) - 5 - (simplex.noise2D(_i / hSeg, 0) + 1) * 5;
-      var right = formula(_i, wSeg) + 5 + (simplex.noise2D(_i / hSeg, 1) + 1) * 5;
+      // let left = formula(i, wSeg) - 5 - (simplex.noise2D(i/hSeg, 0) + 1) * 5;
+      // let right = formula(i, wSeg) + 5 + (simplex.noise2D(i/hSeg, 1) + 1) * 5;
+      var left = formula(_i, wSeg) - 10;
+      var right = formula(_i, wSeg) + 10;
 
       if (j > left && j < right) {
         posarray[3 * (_i * wSeg + j) + 2] = 0;
@@ -3820,7 +3822,7 @@ var Main = function Main(container) {
   function render() {
     if (moving === "jump" || moving === "dive") {
       if (yAngle <= Math.PI) {
-        yAngle += Math.PI / 90.0;
+        yAngle += Math.PI / 30.0;
 
         if (moving === "jump") {
           yOffset = Math.sin(yAngle) * 20;
@@ -3835,7 +3837,9 @@ var Main = function Main(container) {
       }
     }
 
-    adjustVertices(); // zOffset -= 1;
+    adjustVertices();
+    adjustSphere();
+    adjustCamera(); // zOffset -= 1;
 
     sphere.position.set(xOffset, yOffset, zOffset); // water.material.uniforms[ 'time' ].value += 1.0/60.0;
 
@@ -3843,6 +3847,10 @@ var Main = function Main(container) {
     camera.lookAt(new three__WEBPACK_IMPORTED_MODULE_0__["Vector3"](0, 0, zOffset));
     renderer.render(scene, camera);
   }
+
+  function adjustSphere() {}
+
+  function adjustCamera() {}
 
   function adjustVertices() {
     // move last row up
@@ -3885,7 +3893,13 @@ var Main = function Main(container) {
 
   function animate() {
     requestAnimationFrame(animate);
-    render();
+    now = Date.now();
+    elapsed = now - then;
+
+    if (elapsed > fpsInterval) {
+      then = now - elapsed % fpsInterval;
+      render();
+    }
   }
 
   function userInput(event) {
@@ -3920,7 +3934,16 @@ var Main = function Main(container) {
 
   document.addEventListener("keydown", userInput, false);
   window.addEventListener("resize", onWindowResize);
-  animate();
+  var startTime, now, then, elapsed, fpsInterval;
+
+  function startAnimating(fps) {
+    fpsInterval = 1000 / fps;
+    then = Date.now();
+    startTime = then;
+    animate();
+  }
+
+  startAnimating(30);
 };
 
 
