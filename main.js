@@ -72,40 +72,46 @@ export default class Main {
         let pos = planeGeometry.getAttribute("position");
         let posarray = pos.array;
 
-        function formula(x, offset) {
-            let y = Math.PI * x / 110.0;
+        const curvatureFactor = Math.PI;
+        function formula(x, offset = 0) {
+            let y = x * curvatureFactor;
             // let y = x;
             // return (Math.sin(0.5 * y) + Math.sin(y) + 0.2 * Math.sin(3 * y)) * 50 + offset / 2;
             // return (Math.sin(0.5 * y) + Math.sin(y) + 0.2 * Math.sin(3 * y)) * 5 + offset / 2;
             return (Math.sin(0.5 * y) + Math.sin(y)) * 20 + offset / 2;
         }
+
+        function derivative(x) {
+            let y = x * curvatureFactor;
+            // let y = x;
+            return (Math.cos(0.5 * y) / 2 + 20 * Math.cos(y));
+        }
         const simplex = new SimplexNoise();
 
-        for (let i = 0; i < hSeg; i++) {
-            // y
-            for (let j = 0; j < wSeg; j++) {
-                // x
-                // let left = formula(i, wSeg) - 5 - (simplex.noise2D(i/hSeg, 0) + 1) * 5;
-                // let right = formula(i, wSeg) + 5 + (simplex.noise2D(i/hSeg, 1) + 1) * 5;
-                let left = formula(i, wSeg) - 10;
-                let right = formula(i, wSeg) + 10;
-                if ((j > left) && (j < right)) {
-                    posarray[3 * (i * wSeg + j) + 2] = 0;
-                }
-                else {
-                    posarray[3 * (i * wSeg + j) + 2] = 52;
-                }
-                // pa[3 * (i * wSeg + j) + 2] = Math.random();
-            }
-        }
+        // for (let i = 0; i < hSeg; i++) {
+        //     // y
+        //     for (let j = 0; j < wSeg; j++) {
+        //         // x
+        //         // let left = formula(i, wSeg) - 5 - (simplex.noise2D(i/hSeg, 0) + 1) * 5;
+        //         // let right = formula(i, wSeg) + 5 + (simplex.noise2D(i/hSeg, 1) + 1) * 5;
+        //         let left = formula(i, wSeg) - 10;
+        //         let right = formula(i, wSeg) + 10;
+        //         if ((j > left) && (j < right)) {
+        //             posarray[3 * (i * wSeg + j) + 2] = 0;
+        //         }
+        //         else {
+        //             posarray[3 * (i * wSeg + j) + 2] = 52;
+        //         }
+        //         // pa[3 * (i * wSeg + j) + 2] = Math.random();
+        //     }
+        // }
 
-        planeGeometry.getAttribute("position").needsUpdate = true;
-        planeGeometry.computeVertexNormals();
         const plane = new THREE.Mesh(planeGeometry, planeMaterial);
         plane.castShadow = true;
         plane.receiveShadow = true;
         plane.position.y = -50;
         plane.rotation.x = -Math.PI / 2;
+        plane.rotation.z = Math.PI;
         scene.add(plane);
 
 
@@ -186,7 +192,7 @@ export default class Main {
             renderer.setSize(window.innerWidth, window.innerHeight);
             render();
         }
-        function render() {
+        function render(offset) {
             if (moving === "jump" || moving === "dive") {
                 if (yAngle <= Math.PI) {
                     yAngle += Math.PI / 30.0;
@@ -204,47 +210,101 @@ export default class Main {
                     yOffset = 0;
                 }
             }
-            adjustVertices();
-            adjustSphere();
-            adjustCamera();
+            const center = -formula(offset + 100 * fpsInterval * 0.0002) * 5;
+            adjustVertices(offset);
+            adjustSphere(offset, center);
+            adjustCamera(offset, center);
             // zOffset -= 1;
             
-            sphere.position.set(xOffset, yOffset, zOffset);
+            // sphere.position.set(xOffset, yOffset, zOffset);
 
             // water.material.uniforms[ 'time' ].value += 1.0/60.0;
-            camera.position.set(Math.sin(angle) * 100, 30, Math.cos(angle) * 100 + zOffset)
-            camera.lookAt(new THREE.Vector3(0, 0, zOffset));
+            // camera.position.set(Math.sin(angle) * 100, 30, Math.cos(angle) * 100 + zOffset)
+            // camera.lookAt(new THREE.Vector3(0, 0, zOffset));
 
 
             renderer.render(scene, camera);
 
         }
 
-        function adjustSphere() {
+        function adjustSphere(offset, center) {
+            // 5 = 1000px / 200 segs
+            sphere.position.set(center + xOffset, yOffset, zOffset);
+
+        }
+        function adjustCamera(offset, center) {
+            const der = -derivative(offset + 100 * fpsInterval * 0.0002) * (fpsInterval * 0.0002) * curvatureFactor;
+            // const der = -derivative(offset + 100 * fpsInterval * 0.0002);
+            // let temp = Math.atan(der) * 90 / Math.PI;
+            let temp = Math.atan(der);
             
-        }
-        function adjustCamera() {
 
+
+            camera.position.set(center - Math.sin(temp) * 100, 30, Math.cos(temp) * 100 + zOffset)
+            // camera.position.set(center, 30, 100)
+            camera.lookAt(new THREE.Vector3(center, 0, zOffset)); 
         }
 
-        function adjustVertices() {
+        function adjustVertices(offset) {
+            // console.log(offset)
+            // console.log(fpsInterval)
             // move last row up
             let position = planeGeometry.getAttribute("position")
             let pa = position.array
             let temp = [];
-            for (let j = 0; j < wSeg; j++) {
-                temp.push(pa[3 * ((hSeg - 1) * wSeg + j) + 2]);
-            }
-            for (let i = hSeg - 1; i > 0; i--) {
+            // for (let j = 0; j < wSeg; j++) {
+            //     temp.push(pa[3 * ((hSeg - 1) * wSeg + j) + 2]);
+            // }
+            // for (let i = hSeg - 1; i > 0; i--) {
+            //     for (let j = 0; j < wSeg; j++) {
+            //         pa[3 * (i * wSeg + j) + 2] = pa[3 * ((i - 1) * wSeg + j) + 2];
+            //     }
+            // }
+            // for (let j = 0; j < wSeg; j++) {
+            //     pa[3 * j + 2] = temp.pop();
+            // }
+
+            // for (let j = 0; j < wSeg; j++) {
+            //     // temp.push(pa[3 * ((hSeg - 1) * wSeg + j) + 2]);
+            //     temp.push(pa[3 * j + 2]);
+            // }
+            // for (let i = 0; i < hSeg; i++) {
+            //     for (let j = 0; j < wSeg; j++) {
+            //         pa[3 * (i * wSeg + j) + 2] = pa[3 * ((i + 1) * wSeg + j) + 2];
+            //     }
+            // }
+            // for (let j = 0; j < wSeg; j++) {
+            //     pa[3 * ((hSeg - 1) * wSeg + j) + 2] = temp.pop();
+            // }
+
+            // debugger
+            let center = formula(offset + 100 * fpsInterval * 0.0002, wSeg);
+
+            for (let i = 0; i < hSeg; i++) {
+                // y
+                let left = formula(offset + i * fpsInterval * 0.0002, wSeg) - 10;
+                let right = formula(offset + i * fpsInterval * 0.0002, wSeg) + 10;
+
                 for (let j = 0; j < wSeg; j++) {
-                    pa[3 * (i * wSeg + j) + 2] = pa[3 * ((i - 1) * wSeg + j) + 2];
+                    // x
+                    // let left = formula(i, wSeg) - 5 - (simplex.noise2D(i/hSeg, 0) + 1) * 5;
+                    // let right = formula(i, wSeg) + 5 + (simplex.noise2D(i/hSeg, 1) + 1) * 5;
+
+                    if ((j > left) && (j < right)) {
+                        pa[3 * (i * wSeg + j) + 2] = 0;
+                    }
+                    // else if (i === 100) {
+                    //     pa[3 * (i * wSeg + j) + 2] = 80;
+                    // } 
+                    else {
+                        pa[3 * (i * wSeg + j) + 2] = 52;
+                    }
+                    // pa[3 * (i * wSeg + j) + 2] = Math.random();
                 }
             }
-            for (let j = 0; j < wSeg; j++) {
-                pa[3 * j + 2] = temp.pop();
-            }
+            
 
-            planeGeometry.setAttribute("position", new THREE.BufferAttribute(pa,3));
+            // planeGeometry.setAttribute("position", new THREE.BufferAttribute(pa,3));
             planeGeometry.getAttribute("position").needsUpdate = true;
             planeGeometry.computeVertexNormals();
         }
@@ -264,15 +324,6 @@ export default class Main {
             }
         }
 
-        function animate() {
-            requestAnimationFrame( animate );
-            now = Date.now();
-            elapsed = now - then;
-            if (elapsed > fpsInterval) {
-                then = now - (elapsed % fpsInterval);
-                render(); 
-            }
-        }
         function userInput(event) {
             const key = event.key;
             // if (key == 'ArrowUp') {
@@ -299,6 +350,18 @@ export default class Main {
         }
         document.addEventListener("keydown", userInput, false);
         window.addEventListener("resize", onWindowResize);
+
+        function animate() {
+            requestAnimationFrame( animate );
+            now = Date.now();
+            elapsed = now - then;
+            let offset = now * 0.0002;
+            if (elapsed > fpsInterval) {
+                then = now - (elapsed % fpsInterval);
+                // then = now;
+                render(offset); 
+            }
+        }
 
         let startTime, now, then, elapsed, fpsInterval;
         function startAnimating(fps) {

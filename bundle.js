@@ -3720,42 +3720,47 @@ var Main = function Main(container) {
   var wSeg = planeGeometry.parameters.widthSegments + 1;
   var pos = planeGeometry.getAttribute("position");
   var posarray = pos.array;
+  var curvatureFactor = Math.PI;
 
-  function formula(x, offset) {
-    var y = Math.PI * x / 110.0; // let y = x;
+  function formula(x) {
+    var offset = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+    var y = x * curvatureFactor; // let y = x;
     // return (Math.sin(0.5 * y) + Math.sin(y) + 0.2 * Math.sin(3 * y)) * 50 + offset / 2;
     // return (Math.sin(0.5 * y) + Math.sin(y) + 0.2 * Math.sin(3 * y)) * 5 + offset / 2;
 
     return (Math.sin(0.5 * y) + Math.sin(y)) * 20 + offset / 2;
   }
 
-  var simplex = new simplex_noise__WEBPACK_IMPORTED_MODULE_4___default.a();
+  function derivative(x) {
+    var y = x * curvatureFactor; // let y = x;
 
-  for (var _i = 0; _i < hSeg; _i++) {
-    // y
-    for (var j = 0; j < wSeg; j++) {
-      // x
-      // let left = formula(i, wSeg) - 5 - (simplex.noise2D(i/hSeg, 0) + 1) * 5;
-      // let right = formula(i, wSeg) + 5 + (simplex.noise2D(i/hSeg, 1) + 1) * 5;
-      var left = formula(_i, wSeg) - 10;
-      var right = formula(_i, wSeg) + 10;
-
-      if (j > left && j < right) {
-        posarray[3 * (_i * wSeg + j) + 2] = 0;
-      } else {
-        posarray[3 * (_i * wSeg + j) + 2] = 52;
-      } // pa[3 * (i * wSeg + j) + 2] = Math.random();
-
-    }
+    return Math.cos(0.5 * y) / 2 + 20 * Math.cos(y);
   }
 
-  planeGeometry.getAttribute("position").needsUpdate = true;
-  planeGeometry.computeVertexNormals();
+  var simplex = new simplex_noise__WEBPACK_IMPORTED_MODULE_4___default.a(); // for (let i = 0; i < hSeg; i++) {
+  //     // y
+  //     for (let j = 0; j < wSeg; j++) {
+  //         // x
+  //         // let left = formula(i, wSeg) - 5 - (simplex.noise2D(i/hSeg, 0) + 1) * 5;
+  //         // let right = formula(i, wSeg) + 5 + (simplex.noise2D(i/hSeg, 1) + 1) * 5;
+  //         let left = formula(i, wSeg) - 10;
+  //         let right = formula(i, wSeg) + 10;
+  //         if ((j > left) && (j < right)) {
+  //             posarray[3 * (i * wSeg + j) + 2] = 0;
+  //         }
+  //         else {
+  //             posarray[3 * (i * wSeg + j) + 2] = 52;
+  //         }
+  //         // pa[3 * (i * wSeg + j) + 2] = Math.random();
+  //     }
+  // }
+
   var plane = new three__WEBPACK_IMPORTED_MODULE_0__["Mesh"](planeGeometry, planeMaterial);
   plane.castShadow = true;
   plane.receiveShadow = true;
   plane.position.y = -50;
   plane.rotation.x = -Math.PI / 2;
+  plane.rotation.z = Math.PI;
   scene.add(plane); // set up sky
 
   var sky = new three_examples_jsm_objects_Sky_js__WEBPACK_IMPORTED_MODULE_1__["Sky"]();
@@ -3819,7 +3824,7 @@ var Main = function Main(container) {
     render();
   }
 
-  function render() {
+  function render(offset) {
     if (moving === "jump" || moving === "dive") {
       if (yAngle <= Math.PI) {
         yAngle += Math.PI / 30.0;
@@ -3837,42 +3842,88 @@ var Main = function Main(container) {
       }
     }
 
-    adjustVertices();
-    adjustSphere();
-    adjustCamera(); // zOffset -= 1;
+    var center = -formula(offset + 100 * fpsInterval * 0.0002) * 5;
+    adjustVertices(offset);
+    adjustSphere(offset, center);
+    adjustCamera(offset, center); // zOffset -= 1;
+    // sphere.position.set(xOffset, yOffset, zOffset);
+    // water.material.uniforms[ 'time' ].value += 1.0/60.0;
+    // camera.position.set(Math.sin(angle) * 100, 30, Math.cos(angle) * 100 + zOffset)
+    // camera.lookAt(new THREE.Vector3(0, 0, zOffset));
 
-    sphere.position.set(xOffset, yOffset, zOffset); // water.material.uniforms[ 'time' ].value += 1.0/60.0;
-
-    camera.position.set(Math.sin(angle) * 100, 30, Math.cos(angle) * 100 + zOffset);
-    camera.lookAt(new three__WEBPACK_IMPORTED_MODULE_0__["Vector3"](0, 0, zOffset));
     renderer.render(scene, camera);
   }
 
-  function adjustSphere() {}
+  function adjustSphere(offset, center) {
+    // 5 = 1000px / 200 segs
+    sphere.position.set(center + xOffset, yOffset, zOffset);
+  }
 
-  function adjustCamera() {}
+  function adjustCamera(offset, center) {
+    var der = -derivative(offset + 100 * fpsInterval * 0.0002) * (fpsInterval * 0.0002) * curvatureFactor; // const der = -derivative(offset + 100 * fpsInterval * 0.0002);
+    // let temp = Math.atan(der) * 90 / Math.PI;
 
-  function adjustVertices() {
+    var temp = Math.atan(der);
+    camera.position.set(center - Math.sin(temp) * 100, 30, Math.cos(temp) * 100 + zOffset); // camera.position.set(center, 30, 100)
+
+    camera.lookAt(new three__WEBPACK_IMPORTED_MODULE_0__["Vector3"](center, 0, zOffset));
+  }
+
+  function adjustVertices(offset) {
+    // console.log(offset)
+    // console.log(fpsInterval)
     // move last row up
     var position = planeGeometry.getAttribute("position");
     var pa = position.array;
-    var temp = [];
+    var temp = []; // for (let j = 0; j < wSeg; j++) {
+    //     temp.push(pa[3 * ((hSeg - 1) * wSeg + j) + 2]);
+    // }
+    // for (let i = hSeg - 1; i > 0; i--) {
+    //     for (let j = 0; j < wSeg; j++) {
+    //         pa[3 * (i * wSeg + j) + 2] = pa[3 * ((i - 1) * wSeg + j) + 2];
+    //     }
+    // }
+    // for (let j = 0; j < wSeg; j++) {
+    //     pa[3 * j + 2] = temp.pop();
+    // }
+    // for (let j = 0; j < wSeg; j++) {
+    //     // temp.push(pa[3 * ((hSeg - 1) * wSeg + j) + 2]);
+    //     temp.push(pa[3 * j + 2]);
+    // }
+    // for (let i = 0; i < hSeg; i++) {
+    //     for (let j = 0; j < wSeg; j++) {
+    //         pa[3 * (i * wSeg + j) + 2] = pa[3 * ((i + 1) * wSeg + j) + 2];
+    //     }
+    // }
+    // for (let j = 0; j < wSeg; j++) {
+    //     pa[3 * ((hSeg - 1) * wSeg + j) + 2] = temp.pop();
+    // }
+    // debugger
 
-    for (var _j = 0; _j < wSeg; _j++) {
-      temp.push(pa[3 * ((hSeg - 1) * wSeg + _j) + 2]);
-    }
+    var center = formula(offset + 100 * fpsInterval * 0.0002, wSeg);
 
-    for (var _i2 = hSeg - 1; _i2 > 0; _i2--) {
-      for (var _j2 = 0; _j2 < wSeg; _j2++) {
-        pa[3 * (_i2 * wSeg + _j2) + 2] = pa[3 * ((_i2 - 1) * wSeg + _j2) + 2];
+    for (var _i = 0; _i < hSeg; _i++) {
+      // y
+      var left = formula(offset + _i * fpsInterval * 0.0002, wSeg) - 10;
+      var right = formula(offset + _i * fpsInterval * 0.0002, wSeg) + 10;
+
+      for (var j = 0; j < wSeg; j++) {
+        // x
+        // let left = formula(i, wSeg) - 5 - (simplex.noise2D(i/hSeg, 0) + 1) * 5;
+        // let right = formula(i, wSeg) + 5 + (simplex.noise2D(i/hSeg, 1) + 1) * 5;
+        if (j > left && j < right) {
+          pa[3 * (_i * wSeg + j) + 2] = 0;
+        } // else if (i === 100) {
+        //     pa[3 * (i * wSeg + j) + 2] = 80;
+        // } 
+        else {
+            pa[3 * (_i * wSeg + j) + 2] = 52;
+          } // pa[3 * (i * wSeg + j) + 2] = Math.random();
+
       }
-    }
+    } // planeGeometry.setAttribute("position", new THREE.BufferAttribute(pa,3));
 
-    for (var _j3 = 0; _j3 < wSeg; _j3++) {
-      pa[3 * _j3 + 2] = temp.pop();
-    }
 
-    planeGeometry.setAttribute("position", new three__WEBPACK_IMPORTED_MODULE_0__["BufferAttribute"](pa, 3));
     planeGeometry.getAttribute("position").needsUpdate = true;
     planeGeometry.computeVertexNormals();
   }
@@ -3888,17 +3939,6 @@ var Main = function Main(container) {
     if (!lockout) {
       moving = "jump";
       lockout = true;
-    }
-  }
-
-  function animate() {
-    requestAnimationFrame(animate);
-    now = Date.now();
-    elapsed = now - then;
-
-    if (elapsed > fpsInterval) {
-      then = now - elapsed % fpsInterval;
-      render();
     }
   }
 
@@ -3934,6 +3974,20 @@ var Main = function Main(container) {
 
   document.addEventListener("keydown", userInput, false);
   window.addEventListener("resize", onWindowResize);
+
+  function animate() {
+    requestAnimationFrame(animate);
+    now = Date.now();
+    elapsed = now - then;
+    var offset = now * 0.0002;
+
+    if (elapsed > fpsInterval) {
+      then = now - elapsed % fpsInterval; // then = now;
+
+      render(offset);
+    }
+  }
+
   var startTime, now, then, elapsed, fpsInterval;
 
   function startAnimating(fps) {
