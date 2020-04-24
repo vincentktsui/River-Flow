@@ -3665,7 +3665,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 var Main = function Main(container) {
   _classCallCheck(this, Main);
 
-  var clock = new three__WEBPACK_IMPORTED_MODULE_0__["Clock"]();
   var scene = new three__WEBPACK_IMPORTED_MODULE_0__["Scene"]();
   var camera = new three__WEBPACK_IMPORTED_MODULE_0__["PerspectiveCamera"](75, window.innerWidth / window.innerHeight, 10, 1000);
   var angle = 0;
@@ -3675,6 +3674,11 @@ var Main = function Main(container) {
   var yAngle = 0;
   var moving = undefined;
   var lockout = false;
+  var left;
+  var right;
+  var center;
+  var obstacles = [];
+  var obstaclesOffset = [];
   camera.position.set(Math.sin(angle) + xOffset, 30, Math.cos(angle) * 100 + zOffset);
   var renderer = new three__WEBPACK_IMPORTED_MODULE_0__["WebGLRenderer"]({
     antialias: true
@@ -3826,13 +3830,13 @@ var Main = function Main(container) {
 
   function render(offset) {
     if (moving === "jump" || moving === "dive") {
-      if (yAngle <= Math.PI) {
-        yAngle += Math.PI / 30.0;
+      yAngle += Math.PI / fps;
 
+      if (yAngle <= Math.PI) {
         if (moving === "jump") {
-          yOffset = Math.sin(yAngle) * 20;
+          yOffset = Math.sin(yAngle) * 40;
         } else {
-          yOffset = -Math.sin(yAngle) * 20;
+          yOffset = -Math.sin(yAngle) * 40;
         }
       } else {
         moving = "none";
@@ -3842,9 +3846,12 @@ var Main = function Main(container) {
       }
     }
 
-    var center = -formula(offset + 100 * fpsInterval * 0.0002) * 5;
+    center = -formula(offset + 100 * fpsInterval * 0.0002) * 5;
+    left = center - 50;
+    right = center + 50;
     adjustVertices(offset);
     adjustSphere(offset, center);
+    adjustObstacles(offset, center);
     adjustCamera(offset, center); // zOffset -= 1;
     // sphere.position.set(xOffset, yOffset, zOffset);
     // water.material.uniforms[ 'time' ].value += 1.0/60.0;
@@ -3854,9 +3861,54 @@ var Main = function Main(container) {
     renderer.render(scene, camera);
   }
 
+  function createObstacle(offset) {
+    var cylinder_geom = new three__WEBPACK_IMPORTED_MODULE_0__["CylinderGeometry"](10, 10, 100, 20);
+    var cylinder_mat = new three__WEBPACK_IMPORTED_MODULE_0__["MeshStandardMaterial"]({
+      roughness: 0.8,
+      color: new three__WEBPACK_IMPORTED_MODULE_0__["Color"](0x8B4513) // wireframe: true
+
+    });
+    var cylinder = new three__WEBPACK_IMPORTED_MODULE_0__["Mesh"](cylinder_geom, cylinder_mat);
+    scene.add(cylinder);
+    cylinder.rotateZ(Math.PI / 2);
+    var cylCenter = offset + 200 * fpsInterval * 0.0002;
+    obstacles.push(cylinder);
+    obstaclesOffset.push(cylCenter);
+  }
+
   function adjustSphere(offset, center) {
     // 5 = 1000px / 200 segs
     sphere.position.set(center + xOffset, yOffset, zOffset);
+  }
+
+  function adjustObstacles(offset, center) {
+    for (var _i = 0; _i < obstacles.length; _i++) {
+      var tempcyl = obstacles[_i];
+      var cylOff = obstaclesOffset[_i];
+
+      var _pos = -formula(cylOff) * 5;
+
+      var sphereTime = offset + 100 * fpsInterval * 0.0002;
+      var timeDiff = sphereTime - cylOff;
+      var zPos = timeDiff / 0.0002 / fpsInterval;
+      tempcyl.position.set(_pos, 0, zPos * 5);
+
+      if (zPos > 25) {
+        // Remove out of view obstacles
+        scene.remove(obstacles[_i]);
+        obstacles.splice(_i, 1);
+        obstaclesOffset.splice(_i, 1);
+        _i--;
+      }
+    } // console.log(zPos);
+    // if (zPos < 0.1 && zPos > -0.1) {
+    //     console.log("currentTime: ", offset)
+    //     console.log("Saved time: ", cylOff)
+    //     console.log("Calculated current val: ", -formula(offset))
+    //     console.log("Calculated val: ", -formula(cylOff))
+    //     console.log("collision")
+    // }
+
   }
 
   function adjustCamera(offset, center) {
@@ -3900,24 +3952,24 @@ var Main = function Main(container) {
     // }
     // debugger
 
-    var center = formula(offset + 100 * fpsInterval * 0.0002, wSeg);
+    var planecenter = formula(offset + 100 * fpsInterval * 0.0002, wSeg);
 
-    for (var _i = 0; _i < hSeg; _i++) {
+    for (var _i2 = 0; _i2 < hSeg; _i2++) {
       // y
-      var left = formula(offset + _i * fpsInterval * 0.0002, wSeg) - 10;
-      var right = formula(offset + _i * fpsInterval * 0.0002, wSeg) + 10;
+      var planeleft = formula(offset + _i2 * fpsInterval * 0.0002, wSeg) - 10;
+      var planeright = formula(offset + _i2 * fpsInterval * 0.0002, wSeg) + 10;
 
       for (var j = 0; j < wSeg; j++) {
         // x
         // let left = formula(i, wSeg) - 5 - (simplex.noise2D(i/hSeg, 0) + 1) * 5;
         // let right = formula(i, wSeg) + 5 + (simplex.noise2D(i/hSeg, 1) + 1) * 5;
-        if (j > left && j < right) {
-          pa[3 * (_i * wSeg + j) + 2] = 0;
+        if (j > planeleft && j < planeright) {
+          pa[3 * (_i2 * wSeg + j) + 2] = 0;
         } // else if (i === 100) {
         //     pa[3 * (i * wSeg + j) + 2] = 80;
         // } 
         else {
-            pa[3 * (_i * wSeg + j) + 2] = 52;
+            pa[3 * (_i2 * wSeg + j) + 2] = 52;
           } // pa[3 * (i * wSeg + j) + 2] = Math.random();
 
       }
@@ -3946,14 +3998,12 @@ var Main = function Main(container) {
     var key = event.key; // if (key == 'ArrowUp') {
     //     sphere.position.z -= 1;
     // }
-
-    if (key == "a" && angle >= -Math.PI / 2.0) {
-      angle -= Math.PI / 90.0;
-    }
-
-    if (key == "d" && angle < Math.PI / 2.0) {
-      angle += Math.PI / 90.0;
-    }
+    // if (key == "a" && angle >= -Math.PI/2.0) {
+    //     angle -= Math.PI / 90.0;
+    // }
+    // if (key == "d" && angle < Math.PI/2.0) {
+    //     angle += Math.PI / 90.0;
+    // }
 
     if (key == 'ArrowUp') {
       jump();
@@ -3964,13 +4014,18 @@ var Main = function Main(container) {
     }
 
     if (key == 'ArrowLeft') {
-      xOffset -= 1;
+      if (center + xOffset - 10 < left) {} else {
+        xOffset -= 1;
+      }
     }
 
     if (key == 'ArrowRight') {
-      xOffset += 1;
+      if (center + xOffset + 10 > right) {} else {
+        xOffset += 1;
+      }
     }
-  }
+  } // setInterval(() => createObstacle(offset), 10000);
+
 
   document.addEventListener("keydown", userInput, false);
   window.addEventListener("resize", onWindowResize);
@@ -3979,7 +4034,7 @@ var Main = function Main(container) {
     requestAnimationFrame(animate);
     now = Date.now();
     elapsed = now - then;
-    var offset = now * 0.0002;
+    offset = now * 0.0002;
 
     if (elapsed > fpsInterval) {
       then = now - elapsed % fpsInterval; // then = now;
@@ -3988,16 +4043,20 @@ var Main = function Main(container) {
     }
   }
 
-  var startTime, now, then, elapsed, fpsInterval;
+  var offset, fps, startTime, now, then, elapsed, fpsInterval;
 
-  function startAnimating(fps) {
+  function startAnimating() {
     fpsInterval = 1000 / fps;
     then = Date.now();
     startTime = then;
     animate();
   }
 
-  startAnimating(30);
+  fps = 15;
+  startAnimating(fps);
+  setInterval(function () {
+    return createObstacle(offset);
+  }, 2000);
 };
 
 

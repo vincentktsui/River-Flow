@@ -7,7 +7,6 @@ import SimplexNoise from "simplex-noise";
 
 export default class Main {
     constructor(container) {
-        let clock = new THREE.Clock();
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(
             75,
@@ -22,6 +21,11 @@ export default class Main {
         let yAngle = 0;
         let moving = undefined;
         let lockout = false;
+        let left;
+        let right;
+        let center;
+        let obstacles = [];
+        let obstaclesOffset = [];
         camera.position.set(Math.sin(angle) + xOffset, 30, Math.cos(angle) * 100 + zOffset)
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         // renderer.setClearColor("#b2ff66");
@@ -194,13 +198,13 @@ export default class Main {
         }
         function render(offset) {
             if (moving === "jump" || moving === "dive") {
+                yAngle += Math.PI / fps;
                 if (yAngle <= Math.PI) {
-                    yAngle += Math.PI / 30.0;
                     if (moving === "jump") {
-                        yOffset = Math.sin(yAngle) * 20;
+                        yOffset = Math.sin(yAngle) * 40;
                     }
                     else {
-                        yOffset = -Math.sin(yAngle) * 20;
+                        yOffset = -Math.sin(yAngle) * 40;
                     }
                 }
                 else {
@@ -210,10 +214,14 @@ export default class Main {
                     yOffset = 0;
                 }
             }
-            const center = -formula(offset + 100 * fpsInterval * 0.0002) * 5;
+            center = -formula(offset + 100 * fpsInterval * 0.0002) * 5;
+            left = center - 50;
+            right = center + 50;
             adjustVertices(offset);
             adjustSphere(offset, center);
+            adjustObstacles(offset, center);
             adjustCamera(offset, center);
+            
             // zOffset -= 1;
             
             // sphere.position.set(xOffset, yOffset, zOffset);
@@ -226,10 +234,55 @@ export default class Main {
             renderer.render(scene, camera);
 
         }
+        function createObstacle(offset) {
+        
+            const cylinder_geom = new THREE.CylinderGeometry( 10, 10, 100, 20 );
+            const cylinder_mat = new THREE.MeshStandardMaterial({
+                roughness: 0.8,
+                color: new THREE.Color(0x8B4513),
+                // wireframe: true
+            });
+            const cylinder = new THREE.Mesh(cylinder_geom, cylinder_mat);
+            scene.add(cylinder);
+            cylinder.rotateZ(Math.PI / 2);
+            let cylCenter = offset + 200 * fpsInterval * 0.0002;
+            obstacles.push(cylinder);
+            obstaclesOffset.push(cylCenter);
+        }
 
         function adjustSphere(offset, center) {
             // 5 = 1000px / 200 segs
             sphere.position.set(center + xOffset, yOffset, zOffset);
+        }
+
+        function adjustObstacles(offset, center) {
+            for (let i = 0; i < obstacles.length; i++) {
+                let tempcyl = obstacles[i];
+                let cylOff = obstaclesOffset[i];
+                let pos = -formula(cylOff) * 5;
+                let sphereTime = offset + 100 * fpsInterval * 0.0002;
+                let timeDiff = sphereTime - cylOff;
+                let zPos = (timeDiff / 0.0002 / fpsInterval);
+                tempcyl.position.set(pos, 0, zPos * 5);
+                if (zPos > 25) {
+                    // Remove out of view obstacles
+                    scene.remove(obstacles[i]);
+                    obstacles.splice(i, 1);
+                    obstaclesOffset.splice(i, 1);
+                    i--;
+                }
+            }
+
+
+
+            // console.log(zPos);
+            // if (zPos < 0.1 && zPos > -0.1) {
+            //     console.log("currentTime: ", offset)
+            //     console.log("Saved time: ", cylOff)
+            //     console.log("Calculated current val: ", -formula(offset))
+            //     console.log("Calculated val: ", -formula(cylOff))
+            //     console.log("collision")
+            // }
 
         }
         function adjustCamera(offset, center) {
@@ -278,19 +331,19 @@ export default class Main {
             // }
 
             // debugger
-            let center = formula(offset + 100 * fpsInterval * 0.0002, wSeg);
+            let planecenter = formula(offset + 100 * fpsInterval * 0.0002, wSeg);
 
             for (let i = 0; i < hSeg; i++) {
                 // y
-                let left = formula(offset + i * fpsInterval * 0.0002, wSeg) - 10;
-                let right = formula(offset + i * fpsInterval * 0.0002, wSeg) + 10;
+                let planeleft = formula(offset + i * fpsInterval * 0.0002, wSeg) - 10;
+                let planeright = formula(offset + i * fpsInterval * 0.0002, wSeg) + 10;
 
                 for (let j = 0; j < wSeg; j++) {
                     // x
                     // let left = formula(i, wSeg) - 5 - (simplex.noise2D(i/hSeg, 0) + 1) * 5;
                     // let right = formula(i, wSeg) + 5 + (simplex.noise2D(i/hSeg, 1) + 1) * 5;
 
-                    if ((j > left) && (j < right)) {
+                    if ((j > planeleft) && (j < planeright)) {
                         pa[3 * (i * wSeg + j) + 2] = 0;
                     }
                     // else if (i === 100) {
@@ -329,12 +382,12 @@ export default class Main {
             // if (key == 'ArrowUp') {
             //     sphere.position.z -= 1;
             // }
-            if (key == "a" && angle >= -Math.PI/2.0) {
-                angle -= Math.PI / 90.0;
-            }
-            if (key == "d" && angle < Math.PI/2.0) {
-                angle += Math.PI / 90.0;
-            }
+            // if (key == "a" && angle >= -Math.PI/2.0) {
+            //     angle -= Math.PI / 90.0;
+            // }
+            // if (key == "d" && angle < Math.PI/2.0) {
+            //     angle += Math.PI / 90.0;
+            // }
             if (key == 'ArrowUp') {
                 jump();
             }
@@ -342,12 +395,23 @@ export default class Main {
                 dive();
             }
             if (key == 'ArrowLeft') {
-                xOffset -= 1;
+                if (center + xOffset - 10 < left) {
+                }
+                else {
+                    xOffset -= 1;
+                }
             }
             if (key == 'ArrowRight') {
-                xOffset += 1;
+                if (center + xOffset + 10 > right) {
+
+                }
+                else {
+                    xOffset += 1;
+                }            
             }
         }
+        // setInterval(() => createObstacle(offset), 10000);
+
         document.addEventListener("keydown", userInput, false);
         window.addEventListener("resize", onWindowResize);
 
@@ -355,7 +419,7 @@ export default class Main {
             requestAnimationFrame( animate );
             now = Date.now();
             elapsed = now - then;
-            let offset = now * 0.0002;
+            offset = now * 0.0002;
             if (elapsed > fpsInterval) {
                 then = now - (elapsed % fpsInterval);
                 // then = now;
@@ -363,14 +427,16 @@ export default class Main {
             }
         }
 
-        let startTime, now, then, elapsed, fpsInterval;
-        function startAnimating(fps) {
+        let offset, fps, startTime, now, then, elapsed, fpsInterval;
+        function startAnimating() {
             fpsInterval = 1000 / fps;
             then = Date.now();
             startTime = then;
             animate();
         }
+        fps = 15;
+        startAnimating(fps);
+        setInterval(() => createObstacle(offset), 2000);
 
-        startAnimating(30);
     }
 }
