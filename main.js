@@ -15,6 +15,7 @@ export default class Main {
             1000
         );
         let angle = 0;
+        let pushBack = 0;
         let zOffset = 0;
         let xOffset = 0;
         let yOffset = 0;
@@ -197,23 +198,7 @@ export default class Main {
             render();
         }
         function render(offset) {
-            if (moving === "jump" || moving === "dive") {
-                yAngle += Math.PI / fps;
-                if (yAngle <= Math.PI) {
-                    if (moving === "jump") {
-                        yOffset = Math.sin(yAngle) * 40;
-                    }
-                    else {
-                        yOffset = -Math.sin(yAngle) * 40;
-                    }
-                }
-                else {
-                    moving = "none"
-                    lockout = false;
-                    yAngle = 0;
-                    yOffset = 0;
-                }
-            }
+
             center = -formula(offset + 100 * fpsInterval * 0.0002) * 5;
             left = center - 50;
             right = center + 50;
@@ -240,7 +225,6 @@ export default class Main {
             const cylinder_mat = new THREE.MeshStandardMaterial({
                 roughness: 0.8,
                 color: new THREE.Color(0x8B4513),
-                // wireframe: true
             });
             const cylinder = new THREE.Mesh(cylinder_geom, cylinder_mat);
             scene.add(cylinder);
@@ -250,9 +234,31 @@ export default class Main {
             obstaclesOffset.push(cylCenter);
         }
 
+
+
         function adjustSphere(offset, center) {
             // 5 = 1000px / 200 segs
-            sphere.position.set(center + xOffset, yOffset, zOffset);
+            if (moving === "jump" || moving === "dive") {
+                yAngle += Math.PI / fps;
+                if (yAngle <= Math.PI) {
+                    if (moving === "jump") {
+                        yOffset = Math.sin(yAngle) * 40;
+                    }
+                    else {
+                        yOffset = -Math.sin(yAngle) * 40;
+                    }
+                }
+                else {
+                    moving = "none"
+                    lockout = false;
+                    yAngle = 0;
+                    yOffset = 0;
+                }
+            }
+            sphere.position.set(center + xOffset, yOffset, zOffset + pushBack * 5);
+            if (pushBack > 25) {
+                gameOver();
+            }
         }
 
         function adjustObstacles(offset, center) {
@@ -263,6 +269,10 @@ export default class Main {
                 let sphereTime = offset + 100 * fpsInterval * 0.0002;
                 let timeDiff = sphereTime - cylOff;
                 let zPos = (timeDiff / 0.0002 / fpsInterval);
+                if ((Math.abs(zPos - pushBack) < 1) && (Math.abs(yOffset) < 5)) {
+                    pushBack += 1;
+                    console.log(pushBack)
+                }
                 tempcyl.position.set(pos, 0, zPos * 5);
                 if (zPos > 25) {
                     // Remove out of view obstacles
@@ -272,19 +282,8 @@ export default class Main {
                     i--;
                 }
             }
-
-
-
-            // console.log(zPos);
-            // if (zPos < 0.1 && zPos > -0.1) {
-            //     console.log("currentTime: ", offset)
-            //     console.log("Saved time: ", cylOff)
-            //     console.log("Calculated current val: ", -formula(offset))
-            //     console.log("Calculated val: ", -formula(cylOff))
-            //     console.log("collision")
-            // }
-
         }
+
         function adjustCamera(offset, center) {
             const der = -derivative(offset + 100 * fpsInterval * 0.0002) * (fpsInterval * 0.0002) * curvatureFactor;
             // const der = -derivative(offset + 100 * fpsInterval * 0.0002);
@@ -293,14 +292,13 @@ export default class Main {
             
 
 
-            camera.position.set(center - Math.sin(temp) * 100, 30, Math.cos(temp) * 100 + zOffset)
+            camera.position.set(center - Math.sin(temp) * 100, 30, Math.cos(temp) * 100)
             // camera.position.set(center, 30, 100)
-            camera.lookAt(new THREE.Vector3(center, 0, zOffset)); 
+            camera.lookAt(new THREE.Vector3(center, 0, 0)); 
         }
 
         function adjustVertices(offset) {
-            // console.log(offset)
-            // console.log(fpsInterval)
+
             // move last row up
             let position = planeGeometry.getAttribute("position")
             let pa = position.array
@@ -330,7 +328,6 @@ export default class Main {
             //     pa[3 * ((hSeg - 1) * wSeg + j) + 2] = temp.pop();
             // }
 
-            // debugger
             let planecenter = formula(offset + 100 * fpsInterval * 0.0002, wSeg);
 
             for (let i = 0; i < hSeg; i++) {
@@ -414,9 +411,9 @@ export default class Main {
 
         document.addEventListener("keydown", userInput, false);
         window.addEventListener("resize", onWindowResize);
-
+        let animationLoop;
         function animate() {
-            requestAnimationFrame( animate );
+            animationLoop = window.requestAnimationFrame( animate );
             now = Date.now();
             elapsed = now - then;
             offset = now * 0.0002;
@@ -438,5 +435,11 @@ export default class Main {
         startAnimating(fps);
         setInterval(() => createObstacle(offset), 2000);
 
+        function gameOver() {
+            const modal = document.getElementsByClassName("modal")[0];
+            modal.classList.remove("hidden");
+            window.cancelAnimationFrame(animationLoop);
+
+        }
     }
 }
