@@ -255,7 +255,9 @@ export default class Main {
                     yOffset = 0;
                 }
             }
-            sphere.position.set(center + xOffset, yOffset, zOffset + pushBack * 5);
+            let adjustedCenter = -formula(offset + (100 - pushBack) * fpsInterval * 0.0002) * 5;
+            console.log(adjustedCenter);
+            sphere.position.set(adjustedCenter + xOffset, yOffset, zOffset + pushBack * 5);
             if (pushBack > 25) {
                 gameOver();
             }
