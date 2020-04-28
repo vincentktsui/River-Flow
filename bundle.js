@@ -4045,25 +4045,35 @@ var Main = function Main(container) {
     }
   }
 
+  var obstacleInterval;
   var offset, fps, startTime, now, then, elapsed, fpsInterval;
 
   function startAnimating() {
     fpsInterval = 1000 / fps;
     then = Date.now();
     startTime = then;
+    obstacleInterval = setInterval(function () {
+      return createObstacle(offset);
+    }, 2000);
     animate();
   }
 
   fps = 15;
   startAnimating(fps);
-  setInterval(function () {
-    return createObstacle(offset);
-  }, 2000);
+
+  function restart() {
+    var modal = document.getElementsByClassName("modal")[0];
+    modal.classList.add("hidden");
+    startAnimating(fps);
+  }
 
   function gameOver() {
     var modal = document.getElementsByClassName("modal")[0];
+    var playAgainButton = document.getElementById("play-again");
+    playAgainButton.addEventListener("click", restart);
     modal.classList.remove("hidden");
     window.cancelAnimationFrame(animationLoop);
+    window.clearInterval(obstacleInterval);
   }
 };
 

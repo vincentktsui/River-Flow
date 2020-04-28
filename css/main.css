@@ -11,8 +11,8 @@ canvas {
     width: 200px;
     position: absolute;
     top: 0;
-    right: 0;
-    background-color: white;
+    left: 0;
+    color: white;
     padding: 10px;
 }
 
@@ -28,6 +28,14 @@ canvas {
 
 .modal-text {
     position: absolute;
+    width: 200px;
+    margin: 0 auto;
+    background-color: white;
+    font-size: 36px;
+    top: 30%;
+    left: 0;
+    right: 0;
+    
 
 }
 

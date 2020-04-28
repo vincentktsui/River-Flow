@@ -425,23 +425,31 @@ export default class Main {
                 render(offset); 
             }
         }
-
+        let obstacleInterval;
         let offset, fps, startTime, now, then, elapsed, fpsInterval;
         function startAnimating() {
             fpsInterval = 1000 / fps;
             then = Date.now();
             startTime = then;
+            obstacleInterval = setInterval(() => createObstacle(offset), 2000);
             animate();
         }
         fps = 15;
         startAnimating(fps);
-        setInterval(() => createObstacle(offset), 2000);
+
+        function restart() {
+            const modal = document.getElementsByClassName("modal")[0];
+            modal.classList.add("hidden");
+            startAnimating(fps);
+        }
 
         function gameOver() {
             const modal = document.getElementsByClassName("modal")[0];
+            const playAgainButton = document.getElementById("play-again");
+            playAgainButton.addEventListener("click", restart);
             modal.classList.remove("hidden");
             window.cancelAnimationFrame(animationLoop);
-
+            window.clearInterval(obstacleInterval);
         }
     }
 }
