@@ -123,7 +123,7 @@ export default class Setup {
 
     setupLights() {
         this.directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        this.scene.add(this.directionalLightlight);
+        this.scene.add(this.directionalLight);
 
         this.ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
         this.scene.add(this.ambientLight);
