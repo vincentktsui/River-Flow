@@ -7,13 +7,6 @@ import SimplexNoise from "simplex-noise";
 
 export default class Main {
     constructor(container) {
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(
-            75,
-            window.innerWidth / window.innerHeight,
-            10,
-            1000
-        );
         let angle = 0;
         let pushBack = 0;
         let zOffset = 0;
@@ -27,6 +20,7 @@ export default class Main {
         let center;
         let obstacles = [];
         let obstaclesOffset = [];
+        
         camera.position.set(Math.sin(angle) + xOffset, 30, Math.cos(angle) * 100 + zOffset)
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         // renderer.setClearColor("#b2ff66");
@@ -39,39 +33,11 @@ export default class Main {
         scene.add(ambientLight);
         
 
-        // water plane
-        const waterGeometry = new THREE.PlaneBufferGeometry( 1000, 1000 );
-        const water = new Water(waterGeometry, {
-            // textureWidth: 512,
-            // textureHeight: 512,
-            // waterNormals: new THREE.TextureLoader().load('http://realearth.ssec.wisc.edu/js/Cesium/Assets/Textures/waterNormals.jpg', function (texture) {
-            //     console.log(texture);
-            //     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-            // }),
-            // alpha: 0.1,
-            // sunDirection: light.position.clone().normalize(),
-            // sunColor: 0xffffff,
-            // // waterColor: 0x001e0f,
-            // waterColor: 0x99ffff,
-            // distortionScale: 3.7,
-            color: 0x99ffff,
-            scale: 4,
-            flowDirection: new THREE.Vector2(1, 4),
-            textureWidth: 1024,
-            textureHeight: 1024,
-            reflectivity: 0.6,
-        })
-        water.rotation.x = - Math.PI / 2;
-        scene.add(water);
+
 
 
         // set up terrain
-        const planeGeometry = new THREE.PlaneBufferGeometry( 1000, 1000, 200, 200 );
-        const planeMaterial = new THREE.MeshStandardMaterial({
-            roughness: 0.8,
-            color: new THREE.Color(0xb2ff66),
-            // wireframe: true
-        });
+
         let hSeg = planeGeometry.parameters.heightSegments + 1;
         let wSeg = planeGeometry.parameters.widthSegments + 1;
         let pos = planeGeometry.getAttribute("position");
@@ -91,34 +57,6 @@ export default class Main {
             // let y = x;
             return (Math.cos(0.5 * y) / 2 + 20 * Math.cos(y));
         }
-        const simplex = new SimplexNoise();
-
-        // for (let i = 0; i < hSeg; i++) {
-        //     // y
-        //     for (let j = 0; j < wSeg; j++) {
-        //         // x
-        //         // let left = formula(i, wSeg) - 5 - (simplex.noise2D(i/hSeg, 0) + 1) * 5;
-        //         // let right = formula(i, wSeg) + 5 + (simplex.noise2D(i/hSeg, 1) + 1) * 5;
-        //         let left = formula(i, wSeg) - 10;
-        //         let right = formula(i, wSeg) + 10;
-        //         if ((j > left) && (j < right)) {
-        //             posarray[3 * (i * wSeg + j) + 2] = 0;
-        //         }
-        //         else {
-        //             posarray[3 * (i * wSeg + j) + 2] = 52;
-        //         }
-        //         // pa[3 * (i * wSeg + j) + 2] = Math.random();
-        //     }
-        // }
-
-        const plane = new THREE.Mesh(planeGeometry, planeMaterial);
-        plane.castShadow = true;
-        plane.receiveShadow = true;
-        plane.position.y = -50;
-        plane.rotation.x = -Math.PI / 2;
-        plane.rotation.z = Math.PI;
-        scene.add(plane);
-
 
         // set up sky
         const sky = new Sky();
@@ -160,34 +98,7 @@ export default class Main {
         
         updateSun();
 
-        var geometry = new THREE.IcosahedronBufferGeometry(10, 3);
-        var count = geometry.attributes.position.count;
 
-        var colors = [];
-        var color = new THREE.Color();
-
-        for (var i = 0; i < count; i += 3) {
-
-            color.setHex(Math.random() * 0xffffff);
-
-            colors.push(color.r, color.g, color.b);
-            colors.push(color.r, color.g, color.b);
-            colors.push(color.r, color.g, color.b);
-
-        }
-
-        // geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-
-        var material = new THREE.MeshStandardMaterial({
-            color: 0x001e0f,
-            roughness: 0.0,
-            flatShading: true,
-            envMap: cubeCamera.renderTarget.texture,
-            side: THREE.DoubleSide
-        });
-
-        const sphere = new THREE.Mesh(geometry, material);
-        scene.add(sphere);
         
         container.appendChild(renderer.domElement);
         
