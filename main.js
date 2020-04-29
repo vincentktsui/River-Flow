@@ -8,7 +8,6 @@ import Setup from './setup';
 
 export default class Main {
     constructor(container) {
-        this.angle = 0;
         this.pushBack = 0;
         this.zOffset = 0;
         this.xOffset = 0;
@@ -35,6 +34,9 @@ export default class Main {
         this.graphics = new Setup();
         this.animate = this.animate.bind(this);
         this.onWindowResize = this.onWindowResize.bind(this);
+        this.setupVariables = this.setupVariables.bind(this);
+        this.createObstacle = this.createObstacle.bind(this);
+        this.restart = this.restart.bind(this);
         this.userInput = this.userInput.bind(this);
         container.appendChild(this.graphics.renderer.domElement);
         document.addEventListener("keydown", this.userInput, false);
@@ -42,6 +44,17 @@ export default class Main {
         this.fps = 15;
         this.startAnimating(this.fps);
     }
+
+    setupVariables() {
+        this.pushBack = 0;
+        this.zOffset = 0;
+        this.xOffset = 0;
+        this.yOffset = 0;
+        this.yAngle = 0;
+        this.obstacles = [];
+        this.obstaclesOffset = [];
+    }
+
     formula(x, offset = 0) {
         let y = x * this.curvatureFactor;
             // let y = x;
@@ -126,7 +139,7 @@ export default class Main {
         let adjustedCenter = -this.formula(this.offset + (100 - this.pushBack) * this.fpsInterval * 0.0002) * 5;
         this.graphics.sphere.position.set(adjustedCenter + this.xOffset, this.yOffset, this.zOffset + this.pushBack * 5);
         if (this.pushBack > 25) {
-            // gameOver();
+            this.gameOver();
         }
     }
 
@@ -243,8 +256,6 @@ export default class Main {
             }            
         }
     }
-        // setInterval(() => createObstacle(offset), 10000);
-
 
 
     animate() {
@@ -254,7 +265,6 @@ export default class Main {
         this.offset = this.now * 0.0002;
         if (this.elapsed > this.fpsInterval) {
             this.then = this.now - (this.elapsed % this.fpsInterval);
-            // then = now;
             this.render(this.offset); 
         }
     }
@@ -263,24 +273,26 @@ export default class Main {
         this.fpsInterval = 1000 / this.fps;
         this.then = Date.now();
         this.startTime = this.then;
-        this.obstacleInterval = setInterval(() => this.createObstacle.bind(this)(this.offset), 2000);
+        this.obstacleInterval = setInterval(() => this.createObstacle(this.offset), 2000);
         
         this.animate();
     }
 
 
-        // function restart() {
-        //     const modal = document.getElementsByClassName("modal")[0];
-        //     modal.classList.add("hidden");
-        //     startAnimating(fps);
-        // }
+    restart() {
+        const modal = document.getElementsByClassName("modal")[0];
+        modal.classList.add("hidden");
+        this.graphics = new Setup();
+        this.setupVariables();
+        this.startAnimating(this.fps);
+    }
 
-        // function gameOver() {
-        //     const modal = document.getElementsByClassName("modal")[0];
-        //     const playAgainButton = document.getElementById("play-again");
-        //     playAgainButton.addEventListener("click", restart);
-        //     modal.classList.remove("hidden");
-        //     window.cancelAnimationFrame(animationLoop);
-        //     window.clearInterval(obstacleInterval);
-        // }
+    gameOver() {
+        const modal = document.getElementsByClassName("modal")[0];
+        const playAgainButton = document.getElementById("play-again");
+        playAgainButton.addEventListener("click", this.restart);
+        modal.classList.remove("hidden");
+        window.cancelAnimationFrame(this.animationLoop);
+        window.clearInterval(this.obstacleInterval);
+    }
 }

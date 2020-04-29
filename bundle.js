@@ -3672,7 +3672,6 @@ var Main = /*#__PURE__*/function () {
   function Main(container) {
     _classCallCheck(this, Main);
 
-    this.angle = 0;
     this.pushBack = 0;
     this.zOffset = 0;
     this.xOffset = 0;
@@ -3698,6 +3697,9 @@ var Main = /*#__PURE__*/function () {
     this.graphics = new _setup__WEBPACK_IMPORTED_MODULE_5__["default"]();
     this.animate = this.animate.bind(this);
     this.onWindowResize = this.onWindowResize.bind(this);
+    this.setupVariables = this.setupVariables.bind(this);
+    this.createObstacle = this.createObstacle.bind(this);
+    this.restart = this.restart.bind(this);
     this.userInput = this.userInput.bind(this);
     container.appendChild(this.graphics.renderer.domElement);
     document.addEventListener("keydown", this.userInput, false);
@@ -3707,6 +3709,17 @@ var Main = /*#__PURE__*/function () {
   }
 
   _createClass(Main, [{
+    key: "setupVariables",
+    value: function setupVariables() {
+      this.pushBack = 0;
+      this.zOffset = 0;
+      this.xOffset = 0;
+      this.yOffset = 0;
+      this.yAngle = 0;
+      this.obstacles = [];
+      this.obstaclesOffset = [];
+    }
+  }, {
     key: "formula",
     value: function formula(x) {
       var offset = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
@@ -3787,7 +3800,8 @@ var Main = /*#__PURE__*/function () {
       var adjustedCenter = -this.formula(this.offset + (100 - this.pushBack) * this.fpsInterval * 0.0002) * 5;
       this.graphics.sphere.position.set(adjustedCenter + this.xOffset, this.yOffset, this.zOffset + this.pushBack * 5);
 
-      if (this.pushBack > 25) {// gameOver();
+      if (this.pushBack > 25) {
+        this.gameOver();
       }
     }
   }, {
@@ -3901,8 +3915,7 @@ var Main = /*#__PURE__*/function () {
           this.xOffset += 1;
         }
       }
-    } // setInterval(() => createObstacle(offset), 10000);
-
+    }
   }, {
     key: "animate",
     value: function animate() {
@@ -3912,8 +3925,7 @@ var Main = /*#__PURE__*/function () {
       this.offset = this.now * 0.0002;
 
       if (this.elapsed > this.fpsInterval) {
-        this.then = this.now - this.elapsed % this.fpsInterval; // then = now;
-
+        this.then = this.now - this.elapsed % this.fpsInterval;
         this.render(this.offset);
       }
     }
@@ -3926,23 +3938,29 @@ var Main = /*#__PURE__*/function () {
       this.then = Date.now();
       this.startTime = this.then;
       this.obstacleInterval = setInterval(function () {
-        return _this.createObstacle.bind(_this)(_this.offset);
+        return _this.createObstacle(_this.offset);
       }, 2000);
       this.animate();
-    } // function restart() {
-    //     const modal = document.getElementsByClassName("modal")[0];
-    //     modal.classList.add("hidden");
-    //     startAnimating(fps);
-    // }
-    // function gameOver() {
-    //     const modal = document.getElementsByClassName("modal")[0];
-    //     const playAgainButton = document.getElementById("play-again");
-    //     playAgainButton.addEventListener("click", restart);
-    //     modal.classList.remove("hidden");
-    //     window.cancelAnimationFrame(animationLoop);
-    //     window.clearInterval(obstacleInterval);
-    // }
-
+    }
+  }, {
+    key: "restart",
+    value: function restart() {
+      var modal = document.getElementsByClassName("modal")[0];
+      modal.classList.add("hidden");
+      this.graphics = new _setup__WEBPACK_IMPORTED_MODULE_5__["default"]();
+      this.setupVariables();
+      this.startAnimating(this.fps);
+    }
+  }, {
+    key: "gameOver",
+    value: function gameOver() {
+      var modal = document.getElementsByClassName("modal")[0];
+      var playAgainButton = document.getElementById("play-again");
+      playAgainButton.addEventListener("click", this.restart);
+      modal.classList.remove("hidden");
+      window.cancelAnimationFrame(this.animationLoop);
+      window.clearInterval(this.obstacleInterval);
+    }
   }]);
 
   return Main;
