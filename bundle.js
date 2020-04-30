@@ -3747,6 +3747,7 @@ var Main = /*#__PURE__*/function () {
   }, {
     key: "render",
     value: function render() {
+      console.log(this.offset);
       this.center = -this.formula(this.offset + 100 * this.fpsInterval * 0.0002) * 5;
       this.left = this.center - 50;
       this.right = this.center + 50;
@@ -3892,6 +3893,15 @@ var Main = /*#__PURE__*/function () {
       }
     }
   }, {
+    key: "clearScene",
+    value: function clearScene() {
+      var _this = this;
+
+      this.obstacles.forEach(function (obstacle) {
+        _this.graphics.scene.remove(obstacle);
+      });
+    }
+  }, {
     key: "userInput",
     value: function userInput(event) {
       var key = event.key;
@@ -3932,13 +3942,13 @@ var Main = /*#__PURE__*/function () {
   }, {
     key: "startAnimating",
     value: function startAnimating() {
-      var _this = this;
+      var _this2 = this;
 
       this.fpsInterval = 1000 / this.fps;
       this.then = Date.now();
       this.startTime = this.then;
       this.obstacleInterval = setInterval(function () {
-        return _this.createObstacle(_this.offset);
+        return _this2.createObstacle(_this2.offset);
       }, 2000);
       this.animate();
     }
@@ -3947,7 +3957,8 @@ var Main = /*#__PURE__*/function () {
     value: function restart() {
       var modal = document.getElementsByClassName("modal")[0];
       modal.classList.add("hidden");
-      this.graphics = new _setup__WEBPACK_IMPORTED_MODULE_5__["default"]();
+      this.clearScene(); // this.graphics = new Setup();
+
       this.setupVariables();
       this.startAnimating(this.fps);
     }

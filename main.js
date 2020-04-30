@@ -79,6 +79,7 @@ export default class Main {
     }
 
     render() {
+        console.log(this.offset);
         this.center = -this.formula(this.offset + 100 * this.fpsInterval * 0.0002) * 5;
         this.left = this.center - 50;
         this.right = this.center + 50;
@@ -232,6 +233,12 @@ export default class Main {
         }
     }
 
+    clearScene() {
+        this.obstacles.forEach( (obstacle) => {
+            this.graphics.scene.remove(obstacle);
+        });
+    }
+
     userInput(event) {
         const key = event.key;
         if (key == 'ArrowUp') {
@@ -282,7 +289,8 @@ export default class Main {
     restart() {
         const modal = document.getElementsByClassName("modal")[0];
         modal.classList.add("hidden");
-        this.graphics = new Setup();
+        this.clearScene();
+        // this.graphics = new Setup();
         this.setupVariables();
         this.startAnimating(this.fps);
     }
