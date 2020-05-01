@@ -17,28 +17,40 @@ canvas {
 }
 
 .modal {
+    display: flex;
     position: fixed;
     z-index: 2;
     left: 0;
     top: 0;
+    font-family: 'Montserrat', sans-serif;
+    align-items: center;
     width: 100%;
     height: 100%;
+    flex-direction: column;
     background-color: rgba(0,0,0,.4);
 }
 
-.modal-text {
-    position: absolute;
-    width: 200px;
-    margin: 0 auto;
-    background-color: white;
-    font-size: 36px;
-    top: 30%;
-    left: 0;
-    right: 0;
-    
-
+.modal h1 {
+    font-size: 64px;
+    margin: 80px 0;
 }
 
+
+
+.modal button {
+    color: white;
+    font-size: 36px;
+    background: none;
+    width: 200px;
+    height: 50px;
+    border: none;
+    margin: 30px 0;
+    outline: none;
+}
+
+.modal button:hover {
+    cursor: pointer;
+}
 
 
 .hidden {
@@ -52,6 +64,7 @@ canvas {
     position: absolute;
     color: white;
     text-align: center;
+    background: black;
 }
 
 #title-screen h1 {

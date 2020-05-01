@@ -37,9 +37,9 @@ export default class Game {
         this.setupVariables = this.setupVariables.bind(this);
         this.createObstacle = this.createObstacle.bind(this);
         this.restart = this.restart.bind(this);
+        this.quit = this.quit.bind(this);
         this.userInput = this.userInput.bind(this);
         container.appendChild(this.graphics.renderer.domElement);
-        document.addEventListener("keydown", this.userInput, false);
         window.addEventListener("resize", this.onWindowResize);
         this.fps = 15;
         this.fpsInterval = 1000 / this.fps;
@@ -52,10 +52,12 @@ export default class Game {
         this.pushBack = 0;
         this.zOffset = 0;
         this.xOffset = 0;
-        this.yOffset = 0;
-        this.yAngle = 0;
         this.obstacles = [];
         this.obstaclesOffset = [];
+        this.moving = "none"
+        this.lockout = false;
+        this.yAngle = 0;
+        this.yOffset = 0;
     }
 
     formula(x, offset = 0) {
@@ -298,6 +300,8 @@ export default class Game {
         this.then = Date.now();
         this.startTime = this.then;
         this.obstacleInterval = setInterval(() => this.createObstacle(this.offset), 2000);
+        this.setupVariables();
+        document.addEventListener("keydown", this.userInput, false);
 
         this.animate();
     }
@@ -306,16 +310,26 @@ export default class Game {
     restart() {
         const modal = document.getElementsByClassName("modal")[0];
         modal.classList.add("hidden");
-        this.clearScene();
         // this.graphics = new Setup();
-        this.setupVariables();
-        this.startAnimating(this.fps);
+        this.startAnimating();
+    }
+
+    quit() {
+        const modal = document.getElementsByClassName("modal")[0];
+        modal.classList.add("hidden");
+        const titleScreen = document.getElementById("title-screen");
+        titleScreen.classList.remove("hidden");
     }
 
     gameOver() {
+        document.removeEventListener("keydown", this.userInput);
+        this.clearScene();
+
         const modal = document.getElementsByClassName("modal")[0];
         const playAgainButton = document.getElementById("play-again");
         playAgainButton.addEventListener("click", this.restart);
+        const quitButton = document.getElementById("quit");
+        quitButton.addEventListener("click", this.quit);
         modal.classList.remove("hidden");
         window.cancelAnimationFrame(this.animationLoop);
         window.clearInterval(this.obstacleInterval);

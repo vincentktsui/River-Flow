@@ -13,8 +13,11 @@ export default class Main {
         const button = document.getElementById('start-game');
         const titleScreen = document.getElementById('title-screen');
         button.addEventListener("click", () => {
-            titleScreen.classList.add("hidden");
+            
             this.game.startAnimating();
+            setTimeout( () => {
+                titleScreen.classList.add("hidden");
+            }, 500);
         })
     }
 }

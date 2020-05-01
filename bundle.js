@@ -173,9 +173,9 @@ var Game = /*#__PURE__*/function () {
     this.setupVariables = this.setupVariables.bind(this);
     this.createObstacle = this.createObstacle.bind(this);
     this.restart = this.restart.bind(this);
+    this.quit = this.quit.bind(this);
     this.userInput = this.userInput.bind(this);
     container.appendChild(this.graphics.renderer.domElement);
-    document.addEventListener("keydown", this.userInput, false);
     window.addEventListener("resize", this.onWindowResize);
     this.fps = 15;
     this.fpsInterval = 1000 / this.fps; // this.offset = Date.now();
@@ -189,10 +189,12 @@ var Game = /*#__PURE__*/function () {
       this.pushBack = 0;
       this.zOffset = 0;
       this.xOffset = 0;
-      this.yOffset = 0;
-      this.yAngle = 0;
       this.obstacles = [];
       this.obstaclesOffset = [];
+      this.moving = "none";
+      this.lockout = false;
+      this.yAngle = 0;
+      this.yOffset = 0;
     }
   }, {
     key: "formula",
@@ -440,24 +442,36 @@ var Game = /*#__PURE__*/function () {
       this.obstacleInterval = setInterval(function () {
         return _this2.createObstacle(_this2.offset);
       }, 2000);
+      this.setupVariables();
+      document.addEventListener("keydown", this.userInput, false);
       this.animate();
     }
   }, {
     key: "restart",
     value: function restart() {
       var modal = document.getElementsByClassName("modal")[0];
-      modal.classList.add("hidden");
-      this.clearScene(); // this.graphics = new Setup();
+      modal.classList.add("hidden"); // this.graphics = new Setup();
 
-      this.setupVariables();
-      this.startAnimating(this.fps);
+      this.startAnimating();
+    }
+  }, {
+    key: "quit",
+    value: function quit() {
+      var modal = document.getElementsByClassName("modal")[0];
+      modal.classList.add("hidden");
+      var titleScreen = document.getElementById("title-screen");
+      titleScreen.classList.remove("hidden");
     }
   }, {
     key: "gameOver",
     value: function gameOver() {
+      document.removeEventListener("keydown", this.userInput);
+      this.clearScene();
       var modal = document.getElementsByClassName("modal")[0];
       var playAgainButton = document.getElementById("play-again");
       playAgainButton.addEventListener("click", this.restart);
+      var quitButton = document.getElementById("quit");
+      quitButton.addEventListener("click", this.quit);
       modal.classList.remove("hidden");
       window.cancelAnimationFrame(this.animationLoop);
       window.clearInterval(this.obstacleInterval);
@@ -4037,9 +4051,11 @@ var Main = function Main(container) {
   var button = document.getElementById('start-game');
   var titleScreen = document.getElementById('title-screen');
   button.addEventListener("click", function () {
-    titleScreen.classList.add("hidden");
-
     _this.game.startAnimating();
+
+    setTimeout(function () {
+      titleScreen.classList.add("hidden");
+    }, 500);
   });
 };
 
