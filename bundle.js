@@ -109,6 +109,368 @@ init();
 
 /***/ }),
 
+/***/ "./game.js":
+/*!*****************!*\
+  !*** ./game.js ***!
+  \*****************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Game; });
+/* harmony import */ var three__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! three */ "./node_modules/three/build/three.module.js");
+/* harmony import */ var three_examples_jsm_objects_Sky_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! three/examples/jsm/objects/Sky.js */ "./node_modules/three/examples/jsm/objects/Sky.js");
+/* harmony import */ var _js_Water2_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./js/Water2.js */ "./js/Water2.js");
+/* harmony import */ var _js_three__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./js/three */ "./js/three.js");
+/* harmony import */ var _js_three__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_js_three__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var simplex_noise__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! simplex-noise */ "./node_modules/simplex-noise/simplex-noise.js");
+/* harmony import */ var simplex_noise__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(simplex_noise__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var _setup__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./setup */ "./setup.js");
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+
+ // import { Water } from 'three/examples/jsm/objects/Water2.js';
+
+
+
+
+
+
+var Game = /*#__PURE__*/function () {
+  function Game(container) {
+    _classCallCheck(this, Game);
+
+    this.pushBack = 0;
+    this.zOffset = 0;
+    this.xOffset = 0;
+    this.yOffset = 0;
+    this.yAngle = 0;
+    this.moving = undefined;
+    this.lockout = false;
+    this.left;
+    this.right;
+    this.center;
+    this.obstacles = [];
+    this.obstaclesOffset = [];
+    this.curvatureFactor = Math.PI;
+    this.animationLoop;
+    this.obstacleInterval;
+    this.offset;
+    this.fps;
+    this.startTime;
+    this.now;
+    this.then;
+    this.elapsed;
+    this.fpsInterval;
+    this.graphics = new _setup__WEBPACK_IMPORTED_MODULE_5__["default"]();
+    this.animate = this.animate.bind(this);
+    this.onWindowResize = this.onWindowResize.bind(this);
+    this.setupVariables = this.setupVariables.bind(this);
+    this.createObstacle = this.createObstacle.bind(this);
+    this.restart = this.restart.bind(this);
+    this.userInput = this.userInput.bind(this);
+    container.appendChild(this.graphics.renderer.domElement);
+    document.addEventListener("keydown", this.userInput, false);
+    window.addEventListener("resize", this.onWindowResize);
+    this.fps = 15;
+    this.fpsInterval = 1000 / this.fps; // this.offset = Date.now();
+    // this.render();
+    // this.startAnimating(this.fps);
+  }
+
+  _createClass(Game, [{
+    key: "setupVariables",
+    value: function setupVariables() {
+      this.pushBack = 0;
+      this.zOffset = 0;
+      this.xOffset = 0;
+      this.yOffset = 0;
+      this.yAngle = 0;
+      this.obstacles = [];
+      this.obstaclesOffset = [];
+    }
+  }, {
+    key: "formula",
+    value: function formula(x) {
+      var offset = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+      var y = x * this.curvatureFactor; // let y = x;
+      // return (Math.sin(0.5 * y) + Math.sin(y) + 0.2 * Math.sin(3 * y)) * 50 + offset / 2;
+      // return (Math.sin(0.5 * y) + Math.sin(y) + 0.2 * Math.sin(3 * y)) * 5 + offset / 2;
+
+      return (Math.sin(0.5 * y) + Math.sin(y)) * 20 + offset / 2;
+    }
+  }, {
+    key: "derivative",
+    value: function derivative(x) {
+      var y = x * this.curvatureFactor; // let y = x;
+
+      return Math.cos(0.5 * y) / 2 + 20 * Math.cos(y);
+    }
+  }, {
+    key: "onWindowResize",
+    value: function onWindowResize() {
+      var minHeight = window.innerHeight < 600 ? 600 : window.innerHeight;
+      var minWidth = window.innerWidth < 750 ? 750 : window.innerWidth;
+      this.graphics.camera.aspect = window.innerWidth / window.innerHeight;
+      this.graphics.camera.updateProjectionMatrix();
+      this.graphics.renderer.setSize(minWidth, minHeight);
+      this.render();
+    }
+  }, {
+    key: "render",
+    value: function render() {
+      this.center = -this.formula(this.offset + 100 * this.fpsInterval * 0.0002) * 5;
+      this.left = this.center - 50;
+      this.right = this.center + 50;
+      this.adjustVertices(this.offset);
+      this.adjustSphere(this.offset, this.center);
+      this.adjustObstacles(this.offset, this.center);
+      this.adjustCamera(this.offset, this.center); // zOffset -= 1;
+      // sphere.position.set(xOffset, yOffset, zOffset);
+      // water.material.uniforms[ 'time' ].value += 1.0/60.0;
+      // camera.position.set(Math.sin(angle) * 100, 30, Math.cos(angle) * 100 + zOffset)
+      // camera.lookAt(new THREE.Vector3(0, 0, zOffset));
+
+      this.graphics.renderer.render(this.graphics.scene, this.graphics.camera);
+    }
+  }, {
+    key: "createObstacle",
+    value: function createObstacle(offset) {
+      var cylinder_geom = new three__WEBPACK_IMPORTED_MODULE_0__["CylinderGeometry"](10, 10, 100, 20);
+      var cylinder_mat = new three__WEBPACK_IMPORTED_MODULE_0__["MeshStandardMaterial"]({
+        roughness: 0.8,
+        color: new three__WEBPACK_IMPORTED_MODULE_0__["Color"](0x8B4513)
+      });
+      var cylinder = new three__WEBPACK_IMPORTED_MODULE_0__["Mesh"](cylinder_geom, cylinder_mat);
+      cylinder.rotateZ(Math.PI / 2);
+      var cylCenter = offset + 200 * this.fpsInterval * 0.0002;
+      this.obstacles.push(cylinder);
+      this.obstaclesOffset.push(cylCenter);
+      this.graphics.scene.add(cylinder);
+    }
+  }, {
+    key: "adjustSphere",
+    value: function adjustSphere() {
+      // 5 = 1000px / 200 segs
+      if (this.moving === "jump" || this.moving === "dive") {
+        this.yAngle += Math.PI / this.fps;
+
+        if (this.yAngle <= Math.PI) {
+          if (this.moving === "jump") {
+            this.yOffset = Math.sin(this.yAngle) * 40;
+          } else {
+            this.yOffset = -Math.sin(this.yAngle) * 40;
+          }
+        } else {
+          this.moving = "none";
+          this.lockout = false;
+          this.yAngle = 0;
+          this.yOffset = 0;
+        }
+      }
+
+      var adjustedCenter = -this.formula(this.offset + (100 - this.pushBack) * this.fpsInterval * 0.0002) * 5;
+      this.graphics.sphere.position.set(adjustedCenter + this.xOffset, this.yOffset, this.zOffset + this.pushBack * 5);
+
+      if (this.pushBack > 25) {
+        this.gameOver();
+      }
+    }
+  }, {
+    key: "adjustObstacles",
+    value: function adjustObstacles() {
+      for (var i = 0; i < this.obstacles.length; i++) {
+        var tempcyl = this.obstacles[i];
+        var cylOff = this.obstaclesOffset[i];
+        var pos = -this.formula(cylOff) * 5;
+        var sphereTime = this.offset + 100 * this.fpsInterval * 0.0002;
+        var timeDiff = sphereTime - cylOff;
+        var zPos = timeDiff / 0.0002 / this.fpsInterval;
+
+        if (Math.abs(this.pushBack - (zPos + 1)) < .5 && Math.abs(this.yOffset) < 5) {
+          console.log("pushback: ", this.pushBack);
+          console.log("zPos: ", zPos);
+          this.pushBack = zPos + 2;
+        }
+
+        tempcyl.position.set(pos, 0, zPos * 5);
+
+        if (zPos > 25) {
+          // Remove out of view obstacles
+          this.graphics.scene.remove(this.obstacles[i]);
+          this.obstacles.splice(i, 1);
+          this.obstaclesOffset.splice(i, 1);
+          i--;
+        }
+      }
+    }
+  }, {
+    key: "adjustCamera",
+    value: function adjustCamera(offset, center) {
+      var der = -this.derivative(offset + (100 - this.pushBack) * this.fpsInterval * 0.0002) * (this.fpsInterval * 0.0002) * this.curvatureFactor; // const der = -this.derivative(offset + (100) * this.fpsInterval * 0.0002) * (this.fpsInterval * 0.0002) * this.curvatureFactor;
+      // const der = -derivative(offset + 100 * fpsInterval * 0.0002);
+      // let temp = Math.atan(der) * 90 / Math.PI;
+
+      var temp = Math.atan(der);
+      var adjustedCenter = -this.formula(this.offset + (100 - this.pushBack) * this.fpsInterval * 0.0002) * 5;
+      this.graphics.camera.position.set(center - Math.sin(temp) * 100, 30, Math.cos(temp) * 100); // camera.position.set(center, 30, 100)
+
+      this.graphics.camera.lookAt(new three__WEBPACK_IMPORTED_MODULE_0__["Vector3"](center, 0, 0));
+    }
+  }, {
+    key: "adjustVertices",
+    value: function adjustVertices(offset) {
+      var hSeg = this.graphics.planeGeometry.parameters.heightSegments + 1;
+      var wSeg = this.graphics.planeGeometry.parameters.widthSegments + 1;
+      var position = this.graphics.planeGeometry.getAttribute("position");
+      var pa = position.array;
+      var planecenter = this.formula(offset + 100 * this.fpsInterval * 0.0002, wSeg);
+
+      for (var i = 0; i < hSeg; i++) {
+        // y
+        var planeleft = this.formula(offset + i * this.fpsInterval * 0.0002, wSeg) - 10;
+        var planeright = this.formula(offset + i * this.fpsInterval * 0.0002, wSeg) + 10;
+
+        for (var j = 0; j < wSeg; j++) {
+          // x
+          // let left = formula(i, wSeg) - 5 - (simplex.noise2D(i/hSeg, 0) + 1) * 5;
+          // let right = formula(i, wSeg) + 5 + (simplex.noise2D(i/hSeg, 1) + 1) * 5;
+          if (j > planeleft && j < planeright) {
+            pa[3 * (i * wSeg + j) + 2] = 0;
+          } // else if (i === 100) {
+          //     pa[3 * (i * wSeg + j) + 2] = 80;
+          // } 
+          else {
+              pa[3 * (i * wSeg + j) + 2] = 52;
+            } // pa[3 * (i * wSeg + j) + 2] = Math.random();
+
+        }
+      } // planeGeometry.setAttribute("position", new THREE.BufferAttribute(pa,3));
+
+
+      this.graphics.planeGeometry.getAttribute("position").needsUpdate = true;
+      this.graphics.planeGeometry.computeVertexNormals();
+    }
+  }, {
+    key: "dive",
+    value: function dive() {
+      if (!this.lockout) {
+        this.moving = "dive";
+        this.lockout = true;
+      }
+    }
+  }, {
+    key: "jump",
+    value: function jump() {
+      if (!this.lockout) {
+        this.moving = "jump";
+        this.lockout = true;
+      }
+    }
+  }, {
+    key: "clearScene",
+    value: function clearScene() {
+      var _this = this;
+
+      this.obstacles.forEach(function (obstacle) {
+        _this.graphics.scene.remove(obstacle);
+      });
+    }
+  }, {
+    key: "userInput",
+    value: function userInput(event) {
+      var key = event.key;
+
+      if (key == 'ArrowUp') {
+        event.preventDefault();
+        this.jump();
+      }
+
+      if (key == 'ArrowDown') {
+        event.preventDefault();
+        this.dive();
+      }
+
+      if (key == 'ArrowLeft') {
+        event.preventDefault();
+
+        if (this.center + this.xOffset - 10 < this.left) {} else {
+          this.xOffset -= 1;
+        }
+      }
+
+      if (key == 'ArrowRight') {
+        event.preventDefault();
+
+        if (this.center + this.xOffset + 10 > this.right) {} else {
+          this.xOffset += 1;
+        }
+      }
+
+      if (key == 'Escape') {
+        event.preventDefault();
+        this.gameOver();
+      }
+    }
+  }, {
+    key: "animate",
+    value: function animate() {
+      this.animationLoop = window.requestAnimationFrame(this.animate);
+      this.now = Date.now();
+      this.elapsed = this.now - this.then;
+      this.offset = this.now * 0.0002;
+
+      if (this.elapsed > this.fpsInterval) {
+        this.then = this.now - this.elapsed % this.fpsInterval;
+        this.render(this.offset);
+      }
+    }
+  }, {
+    key: "startAnimating",
+    value: function startAnimating() {
+      var _this2 = this;
+
+      this.then = Date.now();
+      this.startTime = this.then;
+      this.obstacleInterval = setInterval(function () {
+        return _this2.createObstacle(_this2.offset);
+      }, 2000);
+      this.animate();
+    }
+  }, {
+    key: "restart",
+    value: function restart() {
+      var modal = document.getElementsByClassName("modal")[0];
+      modal.classList.add("hidden");
+      this.clearScene(); // this.graphics = new Setup();
+
+      this.setupVariables();
+      this.startAnimating(this.fps);
+    }
+  }, {
+    key: "gameOver",
+    value: function gameOver() {
+      var modal = document.getElementsByClassName("modal")[0];
+      var playAgainButton = document.getElementById("play-again");
+      playAgainButton.addEventListener("click", this.restart);
+      modal.classList.remove("hidden");
+      window.cancelAnimationFrame(this.animationLoop);
+      window.clearInterval(this.obstacleInterval);
+    }
+  }]);
+
+  return Game;
+}();
+
+
+
+/***/ }),
+
 /***/ "./js/Water2.js":
 /*!**********************!*\
   !*** ./js/Water2.js ***!
@@ -3654,11 +4016,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var simplex_noise__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! simplex-noise */ "./node_modules/simplex-noise/simplex-noise.js");
 /* harmony import */ var simplex_noise__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(simplex_noise__WEBPACK_IMPORTED_MODULE_4__);
 /* harmony import */ var _setup__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./setup */ "./setup.js");
+/* harmony import */ var _game__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./game */ "./game.js");
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
 
  // import { Water } from 'three/examples/jsm/objects/Water2.js';
@@ -3668,314 +4027,21 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 
 
 
-var Main = /*#__PURE__*/function () {
-  function Main(container) {
-    _classCallCheck(this, Main);
 
-    this.pushBack = 0;
-    this.zOffset = 0;
-    this.xOffset = 0;
-    this.yOffset = 0;
-    this.yAngle = 0;
-    this.moving = undefined;
-    this.lockout = false;
-    this.left;
-    this.right;
-    this.center;
-    this.obstacles = [];
-    this.obstaclesOffset = [];
-    this.curvatureFactor = Math.PI;
-    this.animationLoop;
-    this.obstacleInterval;
-    this.offset;
-    this.fps;
-    this.startTime;
-    this.now;
-    this.then;
-    this.elapsed;
-    this.fpsInterval;
-    this.graphics = new _setup__WEBPACK_IMPORTED_MODULE_5__["default"]();
-    this.animate = this.animate.bind(this);
-    this.onWindowResize = this.onWindowResize.bind(this);
-    this.setupVariables = this.setupVariables.bind(this);
-    this.createObstacle = this.createObstacle.bind(this);
-    this.restart = this.restart.bind(this);
-    this.userInput = this.userInput.bind(this);
-    container.appendChild(this.graphics.renderer.domElement);
-    document.addEventListener("keydown", this.userInput, false);
-    window.addEventListener("resize", this.onWindowResize);
-    this.fps = 15;
-    this.startAnimating(this.fps);
-  }
+var Main = function Main(container) {
+  var _this = this;
 
-  _createClass(Main, [{
-    key: "setupVariables",
-    value: function setupVariables() {
-      this.pushBack = 0;
-      this.zOffset = 0;
-      this.xOffset = 0;
-      this.yOffset = 0;
-      this.yAngle = 0;
-      this.obstacles = [];
-      this.obstaclesOffset = [];
-    }
-  }, {
-    key: "formula",
-    value: function formula(x) {
-      var offset = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
-      var y = x * this.curvatureFactor; // let y = x;
-      // return (Math.sin(0.5 * y) + Math.sin(y) + 0.2 * Math.sin(3 * y)) * 50 + offset / 2;
-      // return (Math.sin(0.5 * y) + Math.sin(y) + 0.2 * Math.sin(3 * y)) * 5 + offset / 2;
+  _classCallCheck(this, Main);
 
-      return (Math.sin(0.5 * y) + Math.sin(y)) * 20 + offset / 2;
-    }
-  }, {
-    key: "derivative",
-    value: function derivative(x) {
-      var y = x * this.curvatureFactor; // let y = x;
+  this.game = new _game__WEBPACK_IMPORTED_MODULE_6__["default"](container);
+  var button = document.getElementById('start-game');
+  var titleScreen = document.getElementById('title-screen');
+  button.addEventListener("click", function () {
+    titleScreen.classList.add("hidden");
 
-      return Math.cos(0.5 * y) / 2 + 20 * Math.cos(y);
-    }
-  }, {
-    key: "onWindowResize",
-    value: function onWindowResize() {
-      this.graphics.camera.aspect = window.innerWidth / window.innerHeight;
-      this.graphics.camera.updateProjectionMatrix();
-      this.graphics.renderer.setSize(window.innerWidth, window.innerHeight);
-      this.render();
-    }
-  }, {
-    key: "render",
-    value: function render() {
-      console.log(this.offset);
-      this.center = -this.formula(this.offset + 100 * this.fpsInterval * 0.0002) * 5;
-      this.left = this.center - 50;
-      this.right = this.center + 50;
-      this.adjustVertices(this.offset);
-      this.adjustSphere(this.offset, this.center);
-      this.adjustObstacles(this.offset, this.center);
-      this.adjustCamera(this.offset, this.center); // zOffset -= 1;
-      // sphere.position.set(xOffset, yOffset, zOffset);
-      // water.material.uniforms[ 'time' ].value += 1.0/60.0;
-      // camera.position.set(Math.sin(angle) * 100, 30, Math.cos(angle) * 100 + zOffset)
-      // camera.lookAt(new THREE.Vector3(0, 0, zOffset));
-
-      this.graphics.renderer.render(this.graphics.scene, this.graphics.camera);
-    }
-  }, {
-    key: "createObstacle",
-    value: function createObstacle(offset) {
-      var cylinder_geom = new three__WEBPACK_IMPORTED_MODULE_0__["CylinderGeometry"](10, 10, 100, 20);
-      var cylinder_mat = new three__WEBPACK_IMPORTED_MODULE_0__["MeshStandardMaterial"]({
-        roughness: 0.8,
-        color: new three__WEBPACK_IMPORTED_MODULE_0__["Color"](0x8B4513)
-      });
-      var cylinder = new three__WEBPACK_IMPORTED_MODULE_0__["Mesh"](cylinder_geom, cylinder_mat);
-      cylinder.rotateZ(Math.PI / 2);
-      var cylCenter = offset + 200 * this.fpsInterval * 0.0002;
-      this.obstacles.push(cylinder);
-      this.obstaclesOffset.push(cylCenter);
-      this.graphics.scene.add(cylinder);
-    }
-  }, {
-    key: "adjustSphere",
-    value: function adjustSphere() {
-      // 5 = 1000px / 200 segs
-      if (this.moving === "jump" || this.moving === "dive") {
-        this.yAngle += Math.PI / this.fps;
-
-        if (this.yAngle <= Math.PI) {
-          if (this.moving === "jump") {
-            this.yOffset = Math.sin(this.yAngle) * 40;
-          } else {
-            this.yOffset = -Math.sin(this.yAngle) * 40;
-          }
-        } else {
-          this.moving = "none";
-          this.lockout = false;
-          this.yAngle = 0;
-          this.yOffset = 0;
-        }
-      }
-
-      var adjustedCenter = -this.formula(this.offset + (100 - this.pushBack) * this.fpsInterval * 0.0002) * 5;
-      this.graphics.sphere.position.set(adjustedCenter + this.xOffset, this.yOffset, this.zOffset + this.pushBack * 5);
-
-      if (this.pushBack > 25) {
-        this.gameOver();
-      }
-    }
-  }, {
-    key: "adjustObstacles",
-    value: function adjustObstacles() {
-      for (var i = 0; i < this.obstacles.length; i++) {
-        var tempcyl = this.obstacles[i];
-        var cylOff = this.obstaclesOffset[i];
-        var pos = -this.formula(cylOff) * 5;
-        var sphereTime = this.offset + 100 * this.fpsInterval * 0.0002;
-        var timeDiff = sphereTime - cylOff;
-        var zPos = timeDiff / 0.0002 / this.fpsInterval;
-
-        if (Math.abs(zPos - this.pushBack) < 1 && Math.abs(this.yOffset) < 5) {
-          this.pushBack += 1;
-        }
-
-        tempcyl.position.set(pos, 0, zPos * 5);
-
-        if (zPos > 25) {
-          // Remove out of view obstacles
-          this.graphics.scene.remove(this.obstacles[i]);
-          this.obstacles.splice(i, 1);
-          this.obstaclesOffset.splice(i, 1);
-          i--;
-        }
-      }
-    }
-  }, {
-    key: "adjustCamera",
-    value: function adjustCamera(offset, center) {
-      var der = -this.derivative(offset + 100 * this.fpsInterval * 0.0002) * (this.fpsInterval * 0.0002) * this.curvatureFactor; // const der = -derivative(offset + 100 * fpsInterval * 0.0002);
-      // let temp = Math.atan(der) * 90 / Math.PI;
-
-      var temp = Math.atan(der);
-      this.graphics.camera.position.set(center - Math.sin(temp) * 100, 30, Math.cos(temp) * 100); // camera.position.set(center, 30, 100)
-
-      this.graphics.camera.lookAt(new three__WEBPACK_IMPORTED_MODULE_0__["Vector3"](center, 0, 0));
-    }
-  }, {
-    key: "adjustVertices",
-    value: function adjustVertices(offset) {
-      var hSeg = this.graphics.planeGeometry.parameters.heightSegments + 1;
-      var wSeg = this.graphics.planeGeometry.parameters.widthSegments + 1;
-      var position = this.graphics.planeGeometry.getAttribute("position");
-      var pa = position.array;
-      var planecenter = this.formula(offset + 100 * this.fpsInterval * 0.0002, wSeg);
-
-      for (var i = 0; i < hSeg; i++) {
-        // y
-        var planeleft = this.formula(offset + i * this.fpsInterval * 0.0002, wSeg) - 10;
-        var planeright = this.formula(offset + i * this.fpsInterval * 0.0002, wSeg) + 10;
-
-        for (var j = 0; j < wSeg; j++) {
-          // x
-          // let left = formula(i, wSeg) - 5 - (simplex.noise2D(i/hSeg, 0) + 1) * 5;
-          // let right = formula(i, wSeg) + 5 + (simplex.noise2D(i/hSeg, 1) + 1) * 5;
-          if (j > planeleft && j < planeright) {
-            pa[3 * (i * wSeg + j) + 2] = 0;
-          } // else if (i === 100) {
-          //     pa[3 * (i * wSeg + j) + 2] = 80;
-          // } 
-          else {
-              pa[3 * (i * wSeg + j) + 2] = 52;
-            } // pa[3 * (i * wSeg + j) + 2] = Math.random();
-
-        }
-      } // planeGeometry.setAttribute("position", new THREE.BufferAttribute(pa,3));
-
-
-      this.graphics.planeGeometry.getAttribute("position").needsUpdate = true;
-      this.graphics.planeGeometry.computeVertexNormals();
-    }
-  }, {
-    key: "dive",
-    value: function dive() {
-      if (!this.lockout) {
-        this.moving = "dive";
-        this.lockout = true;
-      }
-    }
-  }, {
-    key: "jump",
-    value: function jump() {
-      if (!this.lockout) {
-        this.moving = "jump";
-        this.lockout = true;
-      }
-    }
-  }, {
-    key: "clearScene",
-    value: function clearScene() {
-      var _this = this;
-
-      this.obstacles.forEach(function (obstacle) {
-        _this.graphics.scene.remove(obstacle);
-      });
-    }
-  }, {
-    key: "userInput",
-    value: function userInput(event) {
-      var key = event.key;
-
-      if (key == 'ArrowUp') {
-        this.jump();
-      }
-
-      if (key == 'ArrowDown') {
-        this.dive();
-      }
-
-      if (key == 'ArrowLeft') {
-        if (this.center + this.xOffset - 10 < this.left) {} else {
-          this.xOffset -= 1;
-        }
-      }
-
-      if (key == 'ArrowRight') {
-        if (this.center + this.xOffset + 10 > this.right) {} else {
-          this.xOffset += 1;
-        }
-      }
-    }
-  }, {
-    key: "animate",
-    value: function animate() {
-      this.animationLoop = window.requestAnimationFrame(this.animate);
-      this.now = Date.now();
-      this.elapsed = this.now - this.then;
-      this.offset = this.now * 0.0002;
-
-      if (this.elapsed > this.fpsInterval) {
-        this.then = this.now - this.elapsed % this.fpsInterval;
-        this.render(this.offset);
-      }
-    }
-  }, {
-    key: "startAnimating",
-    value: function startAnimating() {
-      var _this2 = this;
-
-      this.fpsInterval = 1000 / this.fps;
-      this.then = Date.now();
-      this.startTime = this.then;
-      this.obstacleInterval = setInterval(function () {
-        return _this2.createObstacle(_this2.offset);
-      }, 2000);
-      this.animate();
-    }
-  }, {
-    key: "restart",
-    value: function restart() {
-      var modal = document.getElementsByClassName("modal")[0];
-      modal.classList.add("hidden");
-      this.clearScene(); // this.graphics = new Setup();
-
-      this.setupVariables();
-      this.startAnimating(this.fps);
-    }
-  }, {
-    key: "gameOver",
-    value: function gameOver() {
-      var modal = document.getElementsByClassName("modal")[0];
-      var playAgainButton = document.getElementById("play-again");
-      playAgainButton.addEventListener("click", this.restart);
-      modal.classList.remove("hidden");
-      window.cancelAnimationFrame(this.animationLoop);
-      window.clearInterval(this.obstacleInterval);
-    }
-  }]);
-
-  return Main;
-}();
+    _this.game.startAnimating();
+  });
+};
 
 
 
@@ -55824,7 +55890,9 @@ var Setup = /*#__PURE__*/function () {
         antialias: true
       }); // renderer.setClearColor("#b2ff66");
 
-      renderer.setSize(window.innerWidth, window.innerHeight);
+      var minHeight = window.innerHeight < 600 ? 600 : window.innerHeight;
+      var minWidth = window.innerWidth < 750 ? 750 : window.innerWidth;
+      renderer.setSize(minWidth, minHeight);
       this.renderer = renderer;
     }
   }, {

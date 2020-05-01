@@ -5,13 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <script src="./bundle.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
     <link type="text/css" rel="stylesheet" href="./css/main.css">
 
     <title>RiverFlow</title>
 </head>
 <body>
+    <div id="title-screen">
+        <h1>RIVER FLOW</h1>
+        <button id="start-game">START</button>
+        <div>
+            <h2>Instructions</h2>
+            <p>Press <span>&larr;</span>  <span>&rarr;</span> to move the ball left and right.</span>
+            <p>Press <span>&uarr;</span>  <span>&darr;</span> to jump up or dive down.</p>
+            <p>Press <span style="font-size: 16px">Esc</span> to end the game.</p>
+            <p>Dodge the obstacles and try to survive for as long as possible.</p>
+            <p>Have fun!</p>
+        </div>
+    </div>
     <div id="root"></div>
-    <div id="instructions">Use left / right arrows to move. Up arrow key to jump over obstacles, and down arrow key to dive under obstacles.</div>
     <div class="modal hidden">
         <div class="modal-text">
             <h1>Game Over!</h1>

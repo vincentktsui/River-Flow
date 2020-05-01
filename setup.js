@@ -47,7 +47,9 @@ export default class Setup {
     setupRenderer() {
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         // renderer.setClearColor("#b2ff66");
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        let minHeight = (window.innerHeight < 600) ? 600 : window.innerHeight;
+        let minWidth = (window.innerWidth < 750) ? 750 : window.innerWidth;
+        renderer.setSize(minWidth, minHeight);
         this.renderer = renderer;
     }
 
