@@ -133,20 +133,6 @@ export default class Setup {
 
     setupSphere() {
         const sphereGeometry = new THREE.IcosahedronBufferGeometry(10, 3);
-        // var count = geometry.attributes.position.count;
-
-        // var colors = [];
-        // var color = new THREE.Color();
-
-        // for (var i = 0; i < count; i += 3) {
-
-        //     color.setHex(Math.random() * 0xffffff);
-
-        //     colors.push(color.r, color.g, color.b);
-        //     colors.push(color.r, color.g, color.b);
-        //     colors.push(color.r, color.g, color.b);
-
-        // }
 
         const sphereMaterial = new THREE.MeshStandardMaterial({
             color: 0x001e0f,

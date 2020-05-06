@@ -90,8 +90,8 @@ export default class Game {
         this.left = this.center - 50;
         this.right = this.center + 50;
         this.adjustVertices(this.offset);
-        this.adjustSphere(this.offset, this.center);
         this.adjustObstacles(this.offset, this.center);
+        this.adjustSphere(this.offset, this.center);
         this.adjustCamera(this.offset, this.center);
 
         // zOffset -= 1;
@@ -157,10 +157,10 @@ export default class Game {
             let sphereTime = this.offset + 100 * this.fpsInterval * 0.0002;
             let timeDiff = sphereTime - cylOff;
             let zPos = (timeDiff / 0.0002 / this.fpsInterval);
-            if ((Math.abs(this.pushBack - (zPos + 1)) < .5) && (Math.abs(this.yOffset) < 5)) {
+            if ((Math.abs((this.pushBack - 1) - (zPos + 1)) < .5) && (Math.abs(this.yOffset) < 5)) {
                 console.log("pushback: ", this.pushBack)
                 console.log("zPos: ", zPos)
-                this.pushBack = zPos + 2;
+                this.pushBack = zPos + 3.2;
             }
             tempcyl.position.set(pos, 0, zPos * 5);
             if (zPos > 25) {

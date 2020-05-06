@@ -230,8 +230,8 @@ var Game = /*#__PURE__*/function () {
       this.left = this.center - 50;
       this.right = this.center + 50;
       this.adjustVertices(this.offset);
-      this.adjustSphere(this.offset, this.center);
       this.adjustObstacles(this.offset, this.center);
+      this.adjustSphere(this.offset, this.center);
       this.adjustCamera(this.offset, this.center); // zOffset -= 1;
       // sphere.position.set(xOffset, yOffset, zOffset);
       // water.material.uniforms[ 'time' ].value += 1.0/60.0;
@@ -294,10 +294,10 @@ var Game = /*#__PURE__*/function () {
         var timeDiff = sphereTime - cylOff;
         var zPos = timeDiff / 0.0002 / this.fpsInterval;
 
-        if (Math.abs(this.pushBack - (zPos + 1)) < .5 && Math.abs(this.yOffset) < 5) {
+        if (Math.abs(this.pushBack - 1 - (zPos + 1)) < .5 && Math.abs(this.yOffset) < 5) {
           console.log("pushback: ", this.pushBack);
           console.log("zPos: ", zPos);
-          this.pushBack = zPos + 2;
+          this.pushBack = zPos + 3.2;
         }
 
         tempcyl.position.set(pos, 0, zPos * 5);
@@ -55993,16 +55993,7 @@ var Setup = /*#__PURE__*/function () {
   }, {
     key: "setupSphere",
     value: function setupSphere() {
-      var sphereGeometry = new three__WEBPACK_IMPORTED_MODULE_0__["IcosahedronBufferGeometry"](10, 3); // var count = geometry.attributes.position.count;
-      // var colors = [];
-      // var color = new THREE.Color();
-      // for (var i = 0; i < count; i += 3) {
-      //     color.setHex(Math.random() * 0xffffff);
-      //     colors.push(color.r, color.g, color.b);
-      //     colors.push(color.r, color.g, color.b);
-      //     colors.push(color.r, color.g, color.b);
-      // }
-
+      var sphereGeometry = new three__WEBPACK_IMPORTED_MODULE_0__["IcosahedronBufferGeometry"](10, 3);
       var sphereMaterial = new three__WEBPACK_IMPORTED_MODULE_0__["MeshStandardMaterial"]({
         color: 0x001e0f,
         roughness: 0.0,
