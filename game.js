@@ -194,8 +194,8 @@ export default class Game {
 
         let position = this.graphics.planeGeometry.getAttribute("position")
         let pa = position.array
-
-
+        const simplex = new SimplexNoise();
+        
         let planecenter = this.formula(offset + 100 * this.fpsInterval * 0.0002, wSeg);
 
         for (let i = 0; i < hSeg; i++) {
@@ -205,19 +205,16 @@ export default class Game {
 
             for (let j = 0; j < wSeg; j++) {
                 // x
-                // let left = formula(i, wSeg) - 5 - (simplex.noise2D(i/hSeg, 0) + 1) * 5;
-                // let right = formula(i, wSeg) + 5 + (simplex.noise2D(i/hSeg, 1) + 1) * 5;
-
                 if ((j > planeleft) && (j < planeright)) {
                     pa[3 * (i * wSeg + j) + 2] = 0;
                 }
-                // else if (i === 100) {
-                //     pa[3 * (i * wSeg + j) + 2] = 80;
-                // } 
-                else {
-                    pa[3 * (i * wSeg + j) + 2] = 52;
+
+                else if (j === planeleft || j === planeright) {
+                    pa[3 * (i * wSeg + j) + 2] = 25;        
                 }
-                // pa[3 * (i * wSeg + j) + 2] = Math.random();
+                else {
+                    pa[3 * (i * wSeg + j) + 2] = 52 + simplex.noise2D(j, offset - i) * 3;
+                }
             }
         }
 

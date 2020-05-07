@@ -331,6 +331,7 @@ var Game = /*#__PURE__*/function () {
       var wSeg = this.graphics.planeGeometry.parameters.widthSegments + 1;
       var position = this.graphics.planeGeometry.getAttribute("position");
       var pa = position.array;
+      var simplex = new simplex_noise__WEBPACK_IMPORTED_MODULE_4___default.a();
       var planecenter = this.formula(offset + 100 * this.fpsInterval * 0.0002, wSeg);
 
       for (var i = 0; i < hSeg; i++) {
@@ -340,17 +341,13 @@ var Game = /*#__PURE__*/function () {
 
         for (var j = 0; j < wSeg; j++) {
           // x
-          // let left = formula(i, wSeg) - 5 - (simplex.noise2D(i/hSeg, 0) + 1) * 5;
-          // let right = formula(i, wSeg) + 5 + (simplex.noise2D(i/hSeg, 1) + 1) * 5;
           if (j > planeleft && j < planeright) {
             pa[3 * (i * wSeg + j) + 2] = 0;
-          } // else if (i === 100) {
-          //     pa[3 * (i * wSeg + j) + 2] = 80;
-          // } 
-          else {
-              pa[3 * (i * wSeg + j) + 2] = 52;
-            } // pa[3 * (i * wSeg + j) + 2] = Math.random();
-
+          } else if (j === planeleft || j === planeright) {
+            pa[3 * (i * wSeg + j) + 2] = 25;
+          } else {
+            pa[3 * (i * wSeg + j) + 2] = 52 + simplex.noise2D(j, offset - i) * 3;
+          }
         }
       } // planeGeometry.setAttribute("position", new THREE.BufferAttribute(pa,3));
 
