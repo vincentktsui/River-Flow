@@ -213,7 +213,8 @@ export default class Game {
                     pa[3 * (i * wSeg + j) + 2] = 25;        
                 }
                 else {
-                    pa[3 * (i * wSeg + j) + 2] = 52 + simplex.noise2D(j, offset - i) * 3;
+                    pa[3 * (i * wSeg + j) + 2] = 52;
+                    //  + simplex.noise2D(j, offset - i) * 3;
                 }
             }
         }
