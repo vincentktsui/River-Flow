@@ -105,6 +105,15 @@ export default class Game {
         this.graphics.renderer.render(this.graphics.scene, this.graphics.camera);
 
     }
+    createWall(offset) {
+
+    }
+
+    createRock(offset) {
+
+    }
+
+    
 
     createObstacle(offset) {
 

@@ -346,7 +346,7 @@ var Game = /*#__PURE__*/function () {
           } else if (j === planeleft || j === planeright) {
             pa[3 * (i * wSeg + j) + 2] = 25;
           } else {
-            pa[3 * (i * wSeg + j) + 2] = 52 + simplex.noise2D(j, offset - i) * 3;
+            pa[3 * (i * wSeg + j) + 2] = 52; //  + simplex.noise2D(j, offset - i) * 3;
           }
         }
       } // planeGeometry.setAttribute("position", new THREE.BufferAttribute(pa,3));
