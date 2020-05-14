@@ -113,6 +113,9 @@ export default class Game {
 
     }
 
+    adjustSun() {
+        
+    }
     
 
     createObstacle(offset) {
