@@ -220,10 +220,6 @@ export default class Game {
                 if ((j > planeleft) && (j < planeright)) {
                     pa[3 * (i * wSeg + j) + 2] = 0;
                 }
-
-                else if (j === planeleft || j === planeright) {
-                    pa[3 * (i * wSeg + j) + 2] = 25;        
-                }
                 else {
                     pa[3 * (i * wSeg + j) + 2] = 52;
                     //  + simplex.noise2D(j, offset - i) * 3;
