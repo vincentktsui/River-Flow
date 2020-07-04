@@ -26,6 +26,7 @@ export default class Game {
         this.offset;
         this.fps;
         this.startTime;
+        this.aliveTime;
         this.now;
         this.then;
         this.elapsed;
@@ -294,6 +295,7 @@ export default class Game {
     animate() {
         this.animationLoop = window.requestAnimationFrame(this.animate);
         this.now = Date.now();
+        this.aliveTime = this.now - this.startTime;
         this.elapsed = this.now - this.then;
         this.offset = this.now * 0.0002;
         if (this.elapsed > this.fpsInterval) {
