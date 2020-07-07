@@ -115,6 +115,7 @@ export default class Game {
     }
 
     adjustSun() {
+        // Implement this tomorrow, using the elapsed time
         
     }
     
