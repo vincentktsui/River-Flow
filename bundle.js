@@ -332,10 +332,11 @@ var Game = /*#__PURE__*/function () {
 
       var temp = Math.atan(der);
       var adjustedCenter = -this.formula(this.offset + (100 - this.pushBack) * this.fpsInterval * 0.0002) * 5;
-      this.graphics.camera.position.set(center - Math.sin(temp) * 100, 30, Math.cos(temp) * 100); // camera.position.set(center, 30, 100)
-
+      var x = center - Math.sin(temp) * 100;
+      var z = Math.cos(temp) * 100;
+      this.graphics.camera.position.set(x, 30, z);
       this.graphics.camera.lookAt(new three__WEBPACK_IMPORTED_MODULE_0__["Vector3"](center, 0, 0));
-      this.adjustScore(temp);
+      this.adjustScore(temp, x, z);
     }
   }, {
     key: "adjustVertices",
@@ -384,12 +385,13 @@ var Game = /*#__PURE__*/function () {
     }
   }, {
     key: "adjustScore",
-    value: function adjustScore(theta) {
+    value: function adjustScore(theta, x, z) {
       var textGeometry = new three__WEBPACK_IMPORTED_MODULE_0__["TextGeometry"](this.aliveTime.toString(), {
         font: this.graphics.font,
         size: 20,
         height: 5
       });
+      textGeometry.center();
       textGeometry.computeBoundingBox();
       textGeometry.computeVertexNormals();
       var material = new three__WEBPACK_IMPORTED_MODULE_0__["MeshStandardMaterial"]({
@@ -397,8 +399,10 @@ var Game = /*#__PURE__*/function () {
       });
       this.graphics.scene.remove(this.score);
       var text = new three__WEBPACK_IMPORTED_MODULE_0__["Mesh"](textGeometry, material);
-      text.position.y = 50;
-      text.position.z = 10;
+      text.position.y = 75;
+      text.position.x = this.center + Math.sin(theta) * 200;
+      text.position.z = -Math.cos(theta) * 200;
+      text.lookAt(this.graphics.camera.position);
       this.score = text;
       this.graphics.scene.add(text);
     }

@@ -258,7 +258,7 @@ export default class Game {
           size: 20,
           height: 5
         });
-        THREE.GeometryUtils.center( textGeometry );
+        textGeometry.center();
         textGeometry.computeBoundingBox();
         textGeometry.computeVertexNormals();
         
@@ -268,10 +268,10 @@ export default class Game {
         
         this.graphics.scene.remove(this.score);
         let text = new THREE.Mesh(textGeometry, material);
-        text.position.y = 50;
-        text.position.z = -20;
+        text.position.y = 75;
+        text.position.x = this.center + Math.sin(theta) * 200;
+        text.position.z = -Math.cos(theta) * 200;
         text.lookAt(this.graphics.camera.position);
-        console.log(text);
         this.score = text;
         this.graphics.scene.add(text);
     }
