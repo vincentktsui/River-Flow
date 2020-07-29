@@ -163,10 +163,12 @@ var Game = /*#__PURE__*/function () {
     this.offset;
     this.fps;
     this.startTime;
+    this.aliveTime;
     this.now;
     this.then;
     this.elapsed;
     this.fpsInterval;
+    this.score;
     this.graphics = new _setup__WEBPACK_IMPORTED_MODULE_5__["default"]();
     this.animate = this.animate.bind(this);
     this.onWindowResize = this.onWindowResize.bind(this);
@@ -241,6 +243,16 @@ var Game = /*#__PURE__*/function () {
       this.graphics.renderer.render(this.graphics.scene, this.graphics.camera);
     }
   }, {
+    key: "createWall",
+    value: function createWall(offset) {}
+  }, {
+    key: "createRock",
+    value: function createRock(offset) {}
+  }, {
+    key: "adjustSun",
+    value: function adjustSun() {// Implement this tomorrow, using the elapsed time
+    }
+  }, {
     key: "createObstacle",
     value: function createObstacle(offset) {
       var cylinder_geom = new three__WEBPACK_IMPORTED_MODULE_0__["CylinderGeometry"](10, 10, 100, 20);
@@ -295,8 +307,8 @@ var Game = /*#__PURE__*/function () {
         var zPos = timeDiff / 0.0002 / this.fpsInterval;
 
         if (Math.abs(this.pushBack - 1 - (zPos + 1)) < .5 && Math.abs(this.yOffset) < 5) {
-          console.log("pushback: ", this.pushBack);
-          console.log("zPos: ", zPos);
+          // console.log("pushback: ", this.pushBack)
+          // console.log("zPos: ", zPos)
           this.pushBack = zPos + 3.2;
         }
 
@@ -323,6 +335,7 @@ var Game = /*#__PURE__*/function () {
       this.graphics.camera.position.set(center - Math.sin(temp) * 100, 30, Math.cos(temp) * 100); // camera.position.set(center, 30, 100)
 
       this.graphics.camera.lookAt(new three__WEBPACK_IMPORTED_MODULE_0__["Vector3"](center, 0, 0));
+      this.adjustScore(temp);
     }
   }, {
     key: "adjustVertices",
@@ -343,8 +356,6 @@ var Game = /*#__PURE__*/function () {
           // x
           if (j > planeleft && j < planeright) {
             pa[3 * (i * wSeg + j) + 2] = 0;
-          } else if (j === planeleft || j === planeright) {
-            pa[3 * (i * wSeg + j) + 2] = 25;
           } else {
             pa[3 * (i * wSeg + j) + 2] = 52; //  + simplex.noise2D(j, offset - i) * 3;
           }
@@ -370,6 +381,26 @@ var Game = /*#__PURE__*/function () {
         this.moving = "jump";
         this.lockout = true;
       }
+    }
+  }, {
+    key: "adjustScore",
+    value: function adjustScore(theta) {
+      var textGeometry = new three__WEBPACK_IMPORTED_MODULE_0__["TextGeometry"](this.aliveTime.toString(), {
+        font: this.graphics.font,
+        size: 20,
+        height: 5
+      });
+      textGeometry.computeBoundingBox();
+      textGeometry.computeVertexNormals();
+      var material = new three__WEBPACK_IMPORTED_MODULE_0__["MeshStandardMaterial"]({
+        color: new three__WEBPACK_IMPORTED_MODULE_0__["Color"](0xb2ff66)
+      });
+      this.graphics.scene.remove(this.score);
+      var text = new three__WEBPACK_IMPORTED_MODULE_0__["Mesh"](textGeometry, material);
+      text.position.y = 50;
+      text.position.z = 10;
+      this.score = text;
+      this.graphics.scene.add(text);
     }
   }, {
     key: "clearScene",
@@ -421,6 +452,7 @@ var Game = /*#__PURE__*/function () {
     value: function animate() {
       this.animationLoop = window.requestAnimationFrame(this.animate);
       this.now = Date.now();
+      this.aliveTime = this.now - this.startTime;
       this.elapsed = this.now - this.then;
       this.offset = this.now * 0.0002;
 
@@ -55860,6 +55892,7 @@ var Setup = /*#__PURE__*/function () {
   function Setup() {
     _classCallCheck(this, Setup);
 
+    this.font;
     this.scene;
     this.camera;
     this.rederer;
@@ -55871,6 +55904,7 @@ var Setup = /*#__PURE__*/function () {
     this.sphere;
     this.ambientLight;
     this.directionalLight;
+    this.score;
     this.setupScene();
     this.setupCameras();
     this.setupRenderer();
@@ -55879,9 +55913,20 @@ var Setup = /*#__PURE__*/function () {
     this.setupWater();
     this.setupSky();
     this.setupSphere();
+    this.loadFont();
   }
 
   _createClass(Setup, [{
+    key: "loadFont",
+    value: function loadFont() {
+      var _this = this;
+
+      var loader = new three__WEBPACK_IMPORTED_MODULE_0__["FontLoader"]();
+      loader.load('fonts/helvetiker_regular.typeface.json', function (response) {
+        _this.font = response;
+      });
+    }
+  }, {
     key: "setupScene",
     value: function setupScene() {
       this.scene = new three__WEBPACK_IMPORTED_MODULE_0__["Scene"]();

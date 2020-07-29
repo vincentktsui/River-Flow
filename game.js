@@ -31,6 +31,7 @@ export default class Game {
         this.then;
         this.elapsed;
         this.fpsInterval;
+        this.score;
 
         this.graphics = new Setup();
         this.animate = this.animate.bind(this);
@@ -172,8 +173,8 @@ export default class Game {
             let timeDiff = sphereTime - cylOff;
             let zPos = (timeDiff / 0.0002 / this.fpsInterval);
             if ((Math.abs((this.pushBack - 1) - (zPos + 1)) < .5) && (Math.abs(this.yOffset) < 5)) {
-                console.log("pushback: ", this.pushBack)
-                console.log("zPos: ", zPos)
+                // console.log("pushback: ", this.pushBack)
+                // console.log("zPos: ", zPos)
                 this.pushBack = zPos + 3.2;
             }
             tempcyl.position.set(pos, 0, zPos * 5);
@@ -196,10 +197,11 @@ export default class Game {
 
 
         let adjustedCenter = -this.formula(this.offset + (100 - this.pushBack) * this.fpsInterval * 0.0002) * 5;
-
-        this.graphics.camera.position.set(center - Math.sin(temp) * 100, 30, Math.cos(temp) * 100)
-        // camera.position.set(center, 30, 100)
+        let x = center - Math.sin(temp) * 100;
+        let z = Math.cos(temp) * 100;
+        this.graphics.camera.position.set(x, 30, z);
         this.graphics.camera.lookAt(new THREE.Vector3(center, 0, 0));
+        this.adjustScore(temp, x, z);
     }
 
     adjustVertices(offset) {
@@ -248,6 +250,30 @@ export default class Game {
             this.moving = "jump";
             this.lockout = true;
         }
+    }
+
+    adjustScore(theta, x, z) {
+        let textGeometry = new THREE.TextGeometry(this.aliveTime.toString(), {
+          font: this.graphics.font, 
+          size: 20,
+          height: 5
+        });
+        THREE.GeometryUtils.center( textGeometry );
+        textGeometry.computeBoundingBox();
+        textGeometry.computeVertexNormals();
+        
+        let material = new THREE.MeshStandardMaterial({
+          color: new THREE.Color(0xb2ff66)
+        });
+        
+        this.graphics.scene.remove(this.score);
+        let text = new THREE.Mesh(textGeometry, material);
+        text.position.y = 50;
+        text.position.z = -20;
+        text.lookAt(this.graphics.camera.position);
+        console.log(text);
+        this.score = text;
+        this.graphics.scene.add(text);
     }
 
     clearScene() {
@@ -311,7 +337,6 @@ export default class Game {
         this.obstacleInterval = setInterval(() => this.createObstacle(this.offset), 2000);
         this.setupVariables();
         document.addEventListener("keydown", this.userInput, false);
-
         this.animate();
     }
 

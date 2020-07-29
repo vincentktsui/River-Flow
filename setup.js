@@ -4,6 +4,7 @@ import { Water } from './js/Water2.js';
 
 export default class Setup {
     constructor() {
+        this.font;
         this.scene;
         this.camera;
         this.rederer;
@@ -15,6 +16,7 @@ export default class Setup {
         this.sphere;
         this.ambientLight;
         this.directionalLight;
+        this.score;
         this.setupScene();
         this.setupCameras();
         this.setupRenderer();
@@ -23,6 +25,14 @@ export default class Setup {
         this.setupWater();
         this.setupSky();
         this.setupSphere();
+        this.loadFont();
+    }
+
+    loadFont() {
+      let loader = new THREE.FontLoader();
+      loader.load('fonts/helvetiker_regular.typeface.json', (response) => {
+        this.font = response; 
+      });
     }
 
     setupScene() {
