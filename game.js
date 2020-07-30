@@ -255,7 +255,7 @@ export default class Game {
     adjustScore(theta, x, z) {
         let textGeometry = new THREE.TextGeometry(this.aliveTime.toString(), {
           font: this.graphics.font, 
-          size: 20,
+          size: 30,
           height: 5
         });
         textGeometry.center();
@@ -263,7 +263,7 @@ export default class Game {
         textGeometry.computeVertexNormals();
         
         let material = new THREE.MeshStandardMaterial({
-          color: new THREE.Color(0xb2ff66)
+          color: new THREE.Color(0x983ae0)
         });
         
         this.graphics.scene.remove(this.score);

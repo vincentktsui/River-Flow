@@ -388,14 +388,14 @@ var Game = /*#__PURE__*/function () {
     value: function adjustScore(theta, x, z) {
       var textGeometry = new three__WEBPACK_IMPORTED_MODULE_0__["TextGeometry"](this.aliveTime.toString(), {
         font: this.graphics.font,
-        size: 20,
+        size: 30,
         height: 5
       });
       textGeometry.center();
       textGeometry.computeBoundingBox();
       textGeometry.computeVertexNormals();
       var material = new three__WEBPACK_IMPORTED_MODULE_0__["MeshStandardMaterial"]({
-        color: new three__WEBPACK_IMPORTED_MODULE_0__["Color"](0xb2ff66)
+        color: new three__WEBPACK_IMPORTED_MODULE_0__["Color"](0x983ae0)
       });
       this.graphics.scene.remove(this.score);
       var text = new three__WEBPACK_IMPORTED_MODULE_0__["Mesh"](textGeometry, material);
