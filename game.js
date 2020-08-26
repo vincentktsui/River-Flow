@@ -64,9 +64,6 @@ export default class Game {
 
     formula(x, offset = 0) {
         let y = x * this.curvatureFactor;
-        // let y = x;
-        // return (Math.sin(0.5 * y) + Math.sin(y) + 0.2 * Math.sin(3 * y)) * 50 + offset / 2;
-        // return (Math.sin(0.5 * y) + Math.sin(y) + 0.2 * Math.sin(3 * y)) * 5 + offset / 2;
         return (Math.sin(0.5 * y) + Math.sin(y)) * 20 + offset / 2;
     }
 
@@ -173,8 +170,6 @@ export default class Game {
             let timeDiff = sphereTime - cylOff;
             let zPos = (timeDiff / 0.0002 / this.fpsInterval);
             if ((Math.abs((this.pushBack - 1) - (zPos + 1)) < .5) && (Math.abs(this.yOffset) < 5)) {
-                // console.log("pushback: ", this.pushBack)
-                // console.log("zPos: ", zPos)
                 this.pushBack = zPos + 3.2;
             }
             tempcyl.position.set(pos, 0, zPos * 5);
@@ -190,12 +185,7 @@ export default class Game {
 
     adjustCamera(offset, center) {
         const der = -this.derivative(offset + (100 - this.pushBack) * this.fpsInterval * 0.0002) * (this.fpsInterval * 0.0002) * this.curvatureFactor;
-        // const der = -this.derivative(offset + (100) * this.fpsInterval * 0.0002) * (this.fpsInterval * 0.0002) * this.curvatureFactor;
-        // const der = -derivative(offset + 100 * fpsInterval * 0.0002);
-        // let temp = Math.atan(der) * 90 / Math.PI;
         let temp = Math.atan(der);
-
-
         let adjustedCenter = -this.formula(this.offset + (100 - this.pushBack) * this.fpsInterval * 0.0002) * 5;
         let x = center - Math.sin(temp) * 100;
         let z = Math.cos(temp) * 100;
